@@ -8,6 +8,13 @@ fastapi = "*"
 uvicorn = "*"
 requests = "*"
 pre-commit = "*"
+pymongo = "*"
+motor = "*"
+python-jose = "*"
+jose = "*"
+pyjwt = "*"
+passlib = "*"
+bcrypt = "*"
 
 [dev-packages]
 
