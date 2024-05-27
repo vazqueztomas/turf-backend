@@ -54,7 +54,7 @@ async def authenticate_user(email: str, password: str):
 
 @app.post("/users/", response_model=UserOut)
 async def create_user(user: UserCreate):
-    user_dict = user.dict()
+    user_dict = user.model_dump()
     user_dict["hashed_password"] = get_password_hash(user.password)
     del user_dict["password"]
     try:
