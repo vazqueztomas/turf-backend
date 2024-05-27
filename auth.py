@@ -8,9 +8,11 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-def verify_password(plain_password, hashed_password):
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password)
 
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # Convertir hashed_password a bytes
+    hashed_password_bytes = hashed_password.encode("utf-8")
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password_bytes)
 
 def get_password_hash(password):
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
