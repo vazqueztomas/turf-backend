@@ -19,7 +19,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173",
-    "http://127.0.0.1:5173"  # Agregar este origen adicional
+    "http://127.0.0.1:5173",  # Agregar este origen adicional
 ]
 
 app.add_middleware(
@@ -34,12 +34,16 @@ app.add_middleware(
 @app.on_event("startup")
 async def create_indexes():
     await users_collection.create_index([("email", ASCENDING)], unique=True)
+
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 async def get_user(email: str):
     user = await users_collection.find_one({"email": email})
     if user:
         return UserInDB(**user)
+
 
 async def authenticate_user(email: str, password: str):
     user = await get_user(email)
@@ -47,14 +51,19 @@ async def authenticate_user(email: str, password: str):
         return user
     return False
 
+
 @app.post("/users/", response_model=UserOut)
 async def create_user(user: UserCreate):
     user_dict = user.dict()
     user_dict["hashed_password"] = get_password_hash(user.password)
     del user_dict["password"]
     try:
-        new_user = await users_collection.insert_one(user_dict)  # Motor is used for async
-        created_user = await users_collection.find_one({"_id": new_user.inserted_id})  # Motor is used for async
+        new_user = await users_collection.insert_one(
+            user_dict
+        )  # Motor is used for async
+        created_user = await users_collection.find_one(
+            {"_id": new_user.inserted_id}
+        )  # Motor is used for async
         return created_user
     except DuplicateKeyError:
         raise HTTPException(
@@ -62,13 +71,14 @@ async def create_user(user: UserCreate):
             detail="Email already registered",
         )
 
+
 @app.post("/token", response_model=dict)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -76,6 +86,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/users/me/", response_model=UserOut)
 async def read_users_me(token: str = Depends(oauth2_scheme)):
