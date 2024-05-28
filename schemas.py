@@ -9,8 +9,10 @@ class UserCreate(BaseModel):
 
 class UserOut(BaseModel):
     email: EmailStr
-    disabled: Optional[bool] = None
+    disabled: Optional[bool] = False
+    authorized: bool
 
 
 class UserInDB(UserOut):
+    _id: Optional[str]
     hashed_password: str
