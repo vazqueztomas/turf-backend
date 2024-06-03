@@ -15,6 +15,7 @@ jose = "*"
 pyjwt = "*"
 passlib = "*"
 bcrypt = "*"
+pypdf = "*"
 
 [dev-packages]
 
