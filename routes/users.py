@@ -44,7 +44,6 @@ async def read_users():
     users = await users_collection.find().to_list(1000)
     cleaned_users = []
     for user in users:
-        # Aseguramos que todos los campos requeridos estén presentes
         user.setdefault('authorized', False)
         user.setdefault('disabled', False)
         cleaned_user = {k: v for k, v in user.items() if k in UserOut.__fields__}
@@ -86,6 +85,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
+@router.post('/logout', response_model=dict)
+async def logout():
+    return {'message': 'Logout successful'}
+
 
 @router.post('/users/', response_model=UserOut)
 async def create_user(user: UserCreate):
@@ -117,7 +120,7 @@ async def authorize_user(email: str, auth_request: AuthorizationRequest) -> User
         {'email': email}, {'$set': {'authorized': auth_request.authorized}}
     )
 
-    # Recargar el usuario actualizado desde la base de datos
+    # recharge user from database
     user = await get_user(email)
 
     if user is None:
