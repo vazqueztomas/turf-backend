@@ -16,6 +16,7 @@ pyjwt = "*"
 passlib = "*"
 bcrypt = "*"
 pypdf = "*"
+tabula-py = "*"
 
 [dev-packages]
 
