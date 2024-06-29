@@ -1,3 +1,5 @@
+import os
+
 from motor.motor_asyncio import AsyncIOMotorClient
 
 
@@ -10,7 +12,7 @@ class DatabaseConnection:
         return self.database_name[collection_name]
 
 
-db_uri = 'mongodb+srv://vazquezt2018:turf1234@cluster0.mmlsepe.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-db_name = 'turf'
+db_uri = os.environ.get("DB_URI")
+db_name = "turf"
 
 database = DatabaseConnection(db_uri, db_name)

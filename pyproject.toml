@@ -71,7 +71,7 @@ extend-select = [
     'FURB',
     'RUF',
 ]
-ignore = []
+ignore = ["COM812", "ISC001"]
 
 [tool.ruff.format]
 quote-style = "double"
