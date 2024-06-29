@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.1 (2024-06-29)
+
+### Fix
+
+* fix(config): type functions ([`cb373e2`](https://github.com/vazqueztomas/turf-backend/commit/cb373e2ce80bb20d176eb50f6b9edbd360858fcb))
+
 ## v0.1.0 (2024-06-29)
 
 ### Feature
