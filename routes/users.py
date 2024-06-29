@@ -14,8 +14,8 @@ from auth import (
     verify_password,
 )
 from database import users_collection
-from models import UserInDB
-from schemas import UserCreate, UserOut
+from models.models import UserInDB
+from schemas.schemas import UserCreate, UserOut
 
 router = APIRouter()
 
