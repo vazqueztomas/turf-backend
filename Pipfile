@@ -19,6 +19,11 @@ pypdf = "*"
 tabula-py = "*"
 
 [dev-packages]
+ruff = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.10"
+
+[scripts]
+format = "pre-commit run --all-files"
