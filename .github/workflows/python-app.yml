@@ -35,4 +35,4 @@ jobs:
 
     - name: Lint and format
       run: |
-        pipenv format
+        pipenv run format
