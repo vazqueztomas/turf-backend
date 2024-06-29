@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 
 import bcrypt
 import jwt
@@ -15,11 +15,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password_bytes)
 
 
-def get_password_hash(password):
+def get_password_hash(password) -> bytes:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -30,7 +30,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_access_token(token: str):
+def decode_access_token(token: str) -> Any | None:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload or None  # noqa: TRY300
