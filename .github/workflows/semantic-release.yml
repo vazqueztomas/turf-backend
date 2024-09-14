@@ -1,12 +1,17 @@
 name: Semantic Release
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+  workflow_run:
+    workflows: ["CI"]  # Nombre del workflow de CI, ajusta según sea necesario
+    types:
+      - completed
 
 jobs:
   release:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
@@ -18,7 +23,16 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@master
+    - name: Set up Python
+      uses: actions/setup-python@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install python-semantic-release
+
+    - name: Python Semantic Release
+      run: semantic-release publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
