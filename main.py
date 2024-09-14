@@ -1,10 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pymongo import ASCENDING
-from database import database
+from fastapi.responses import JSONResponse
 
-from database import database
-from routes import pdf_reader, users
+from routes import auth, pdf_reader, users
 
 app = FastAPI()
 
@@ -23,3 +21,20 @@ app.add_middleware(
 
 app.include_router(pdf_reader.router)
 app.include_router(users.router)
+app.include_router(auth.router)
+
+
+@app.exception_handler(HTTPException)
+def http_exception_handler(_: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+def global_exception_handler():
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error"},
+    )

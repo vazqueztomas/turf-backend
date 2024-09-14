@@ -1,8 +1,9 @@
-
 from contextlib import contextmanager
 from typing import Generator
+
+from sqlmodel import Session, SQLModel, create_engine
+
 from core import settings
-from sqlmodel import create_engine, Session, SQLModel
 
 
 class DatabaseConnection:
