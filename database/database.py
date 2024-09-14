@@ -1,18 +1,19 @@
-import os
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from contextlib import contextmanager
+from typing import Generator
+from core import settings
+from sqlmodel import create_engine, Session, SQLModel
 
 
 class DatabaseConnection:
-    def __init__(self, uri, database_name):
-        self.client = AsyncIOMotorClient(uri)
-        self.database_name = self.client[database_name]
+    def __init__(self, uri):
+        self.engine = create_engine(uri, echo=True)
+        SQLModel.metadata.create_all(self.engine)
 
-    def get_collection(self, collection_name):
-        return self.database_name[collection_name]
+    @contextmanager
+    def get_session(self) -> Generator[Session, None, None]:
+        with Session(self.engine) as session:
+            yield session
 
 
-db_uri = os.environ.get("DB_URI")
-db_name = "turf"
-
-database = DatabaseConnection(db_uri, db_name)
+database = DatabaseConnection(settings.DB_URI)
