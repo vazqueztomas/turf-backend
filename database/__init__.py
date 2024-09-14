@@ -1,3 +1,3 @@
-from .database import database
+from .database import get_connection
 
-__all__ = ["database"]
+__all__ = ["get_connection"]

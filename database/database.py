@@ -17,3 +17,8 @@ class DatabaseConnection:
 
 
 database = DatabaseConnection(settings.DB_URI)
+
+
+def get_connection() -> Generator[Session, None, None]:
+    with database.get_session() as session:
+        yield session
