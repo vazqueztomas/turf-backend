@@ -80,8 +80,7 @@ def login(
     session: Session = DatabaseSession,
 ) -> AccessToken:
     user_controller = UserController(session)
-    access_token = user_controller.login(
-        form_data.username, form_data.password)
+    access_token = user_controller.login(form_data.username, form_data.password)
 
     if not access_token:
         raise HTTPException(
