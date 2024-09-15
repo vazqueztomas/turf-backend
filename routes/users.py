@@ -1,48 +1,43 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
-from sqlmodel import Session, select
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlmodel import Session
 
-from auth import (
-    decode_access_token,
-    get_password_hash,
-)
-from models.user import User
+from controllers.user import AuthorizationRequest, UserController
 from routes.dependencies import DatabaseSession
-from schemas.user import UserCreatePayload, UserOut
+from schemas.user import AccessToken, UserCreatePayload, UserOut
 
-router = APIRouter(prefix="/users")
+router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-class AuthorizationRequest(BaseModel):
-    authorized: bool
+@router.get("/user", response_model=list[UserOut])
+def read_users(session: Session = DatabaseSession) -> list[UserOut]:
+    user_controller = UserController(session)
+    users = user_controller.get_users()
+    return [
+        UserOut(email=user.email, name=user.name, authorized=user.authorized)
+        for user in users
+    ]
 
 
-@router.get("/", response_model=List[UserOut])
-def read_users(connection: Session = DatabaseSession):
-    statement = select(User)
-    return connection.exec(statement).fetchall()
-
-
-@router.get("/me", response_model=UserOut)
+@router.get("/user/me", response_model=UserOut)
 def read_users_me(
-    token: str = Depends(oauth2_scheme), connection: Session = DatabaseSession
+    token: str = Depends(oauth2_scheme), session: Session = DatabaseSession
 ):
-    payload = decode_access_token(token)
-    if payload is None:
+    user_controller = UserController(session)
+    payload = user_controller.decode_access_token(token)
+    if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     email: str = payload.get("sub")
-    statement = select(User).where(User.email == email)
-    user = connection.exec(statement).one_or_none()
-    if user is None:
+    user = user_controller.get_user(email)
+
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
@@ -50,45 +45,54 @@ def read_users_me(
     return user
 
 
-@router.post("/", response_model=UserOut)
-def create_user(
-    user: UserCreatePayload, connection: Session = DatabaseSession
-) -> UserOut:
-    user_dict = user.model_dump()
-    user_dict["hashed_password"] = get_password_hash(user.password).decode("utf-8")
-    del user_dict["password"]
+@router.post("/user", response_model=UserOut)
+def create_user(user: UserCreatePayload, session: Session = DatabaseSession) -> UserOut:
+    user_controller = UserController(session)
+    new_user = user_controller.create_user(user)
 
-    statement = select(User).where(User.email == user_dict["email"])
-    email_already_used = connection.exec(statement).one_or_none()
-
-    if email_already_used:
+    if not new_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
 
-    new_user = User(**user_dict)
-    connection.add(new_user)
-    connection.commit()
-    return UserOut(
-        email=new_user.email, name=new_user.name, authorized=new_user.authorized
-    )
+    return UserOut(**new_user.model_dump())
 
 
-@router.put("/{email}/authorize", response_model=UserOut)
+@router.put("/user/{email}/authorize", response_model=UserOut)
 def authorize_user(
     email: str,
     auth_request: AuthorizationRequest,
-    connection: Session = DatabaseSession,
+    session: Session = DatabaseSession,
 ) -> UserOut:
-    statement = select(User).where(User.email == email)
-    user = connection.exec(statement).one_or_none()
+    user_controller = UserController(session)
+    user = user_controller.update_user(email, auth_request)
 
-    if user is None:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.email = email
-    user.authorized = auth_request.authorized
-    connection.add(user)
-
     return UserOut(**user.model_dump())
+
+
+@router.post("/token", response_model=AccessToken)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),  # noqa: B008
+    session: Session = DatabaseSession,
+) -> AccessToken:
+    user_controller = UserController(session)
+    access_token = user_controller.login(
+        form_data.username, form_data.password)
+
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return access_token
+
+
+@router.post("/logout", response_model=dict)
+def logout():
+    return {"message": "Logout successful"}
