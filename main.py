@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routes import auth, pdf_reader, users
+from routes import pdf_reader, users
 
 app = FastAPI()
 
@@ -21,7 +21,6 @@ app.add_middleware(
 
 app.include_router(pdf_reader.router)
 app.include_router(users.router)
-app.include_router(auth.router)
 
 
 @app.exception_handler(HTTPException)
