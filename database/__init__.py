@@ -1,3 +1,3 @@
-from .database import database
+from .database import get_connection
 
-users_collection = database.get_collection("users")
+__all__ = ["get_connection"]

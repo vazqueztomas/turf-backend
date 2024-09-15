@@ -1,9 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pymongo import ASCENDING
+from fastapi.responses import JSONResponse
 
-from database import users_collection
-from routes import pdf_reader, users
+from routes import auth, pdf_reader, users
 
 app = FastAPI()
 
@@ -20,12 +19,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Crear índice único en el campo de correo electrónico
-@app.on_event("startup")
-async def create_indexes():
-    await users_collection.create_index([("email", ASCENDING)], unique=True)
-
-
 app.include_router(pdf_reader.router)
 app.include_router(users.router)
+app.include_router(auth.router)
+
+
+@app.exception_handler(HTTPException)
+def http_exception_handler(_: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+def global_exception_handler():
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error"},
+    )
