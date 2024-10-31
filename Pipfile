@@ -20,6 +20,8 @@ psycopg2-binary = "*"
 pydantic-settings = "*"
 fastapi = {extras = ["standard"], version = "*"}
 pytest-cov = "==6.0.0"
+httpx = "*"
+pytest-mock = "==3.14.0"
 
 [dev-packages]
 ruff = "*"
