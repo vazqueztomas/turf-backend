@@ -19,7 +19,7 @@ class DatabaseConnection:
             yield session
 
 
-database = DatabaseConnection(settings.database_url)
+database = DatabaseConnection(settings.postgres_url)
 
 
 def get_connection() -> Generator[Session, None, None]:
