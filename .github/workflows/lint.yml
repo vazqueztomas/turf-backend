@@ -37,5 +37,9 @@ jobs:
         echo "DB_PORT=5432" >> $GITHUB_ENV
         echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
 
+    - name: Debug Environment Variables
+      run: |
+        echo "DATABASE_URL=$DATABASE_URL"
+
     - name: Run tests
       run: pipenv run test
