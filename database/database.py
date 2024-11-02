@@ -1,9 +1,11 @@
 from contextlib import contextmanager
 from typing import Generator
 
-from sqlmodel import Session, SQLModel, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlmodel import SQLModel
 
-from core import settings
+from core.config.settings import settings
 
 
 class DatabaseConnection:
@@ -17,7 +19,7 @@ class DatabaseConnection:
             yield session
 
 
-database = DatabaseConnection(settings.DB_URI)
+database = DatabaseConnection(settings.database_url)
 
 
 def get_connection() -> Generator[Session, None, None]:

@@ -36,3 +36,7 @@ jobs:
     - name: Lint and format
       run: |
         pipenv run format
+
+    - name: Run tests
+      run: |
+        pipenv run test
