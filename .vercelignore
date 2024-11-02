@@ -1,0 +1,21 @@
+# Excluir archivos y directorios innecesarios
+*.pyc
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+coverage-report.xml
+coverage.xml
+.coverage
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.log
+*.sqlite3
+*.db
+*.DS_Store
+tests/
+docs/
+.env
+*.pdf
