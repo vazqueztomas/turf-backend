@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session
 
 from controllers.user import AuthorizationRequest, UserController
-from routes.dependencies import DatabaseSession
+from database.database import get_connection
 from schemas.user import AccessToken, UserCreatePayload, UserOut
 
 router = APIRouter()
@@ -12,7 +12,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.get("/user", response_model=list[UserOut])
-def read_users(session: Session = DatabaseSession) -> list[UserOut]:
+def read_users(session: Session = Depends(get_connection)) -> list[UserOut]:  # noqa: B008
     user_controller = UserController(session)
     users = user_controller.get_users()
     return [
@@ -23,7 +23,8 @@ def read_users(session: Session = DatabaseSession) -> list[UserOut]:
 
 @router.get("/user/me", response_model=UserOut)
 def read_users_me(
-    token: str = Depends(oauth2_scheme), session: Session = DatabaseSession
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_connection),  # noqa: B008
 ):
     user_controller = UserController(session)
     payload = user_controller.decode_access_token(token)
@@ -46,7 +47,10 @@ def read_users_me(
 
 
 @router.post("/user", response_model=UserOut)
-def create_user(user: UserCreatePayload, session: Session = DatabaseSession) -> UserOut:
+def create_user(
+    user: UserCreatePayload,
+    session: Session = Depends(get_connection),  # noqa: B008
+) -> UserOut:
     user_controller = UserController(session)
     new_user = user_controller.create_user(user)
 
@@ -63,7 +67,7 @@ def create_user(user: UserCreatePayload, session: Session = DatabaseSession) -> 
 def authorize_user(
     email: str,
     auth_request: AuthorizationRequest,
-    session: Session = DatabaseSession,
+    session: Session = Depends(get_connection),  # noqa: B008
 ) -> UserOut:
     user_controller = UserController(session)
     user = user_controller.update_user(email, auth_request)
@@ -77,7 +81,7 @@ def authorize_user(
 @router.post("/token", response_model=AccessToken)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),  # noqa: B008
-    session: Session = DatabaseSession,
+    session: Session = Depends(get_connection),  # noqa: B008
 ) -> AccessToken:
     user_controller = UserController(session)
     access_token = user_controller.login(form_data.username, form_data.password)

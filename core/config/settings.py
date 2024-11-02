@@ -2,11 +2,11 @@ from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-# Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
 
 class Settings(BaseSettings):
+    environment: str = Field(..., json_schema_extra={"env": "ENVIRONMENT"})
     db_name: str = Field(..., json_schema_extra={"env": "DB_NAME"})
     db_user: str = Field(..., json_schema_extra={"env": "DB_USER"})
     db_password: str = Field(..., json_schema_extra={"env": "DB_PASSWORD"})
@@ -21,3 +21,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+if settings.environment == "DEVELOPMENT":
+    settings.database_url = f"postgresql://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}"  # pylint: disable=line-too-long
