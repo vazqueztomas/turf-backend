@@ -19,3 +19,18 @@ tests/
 docs/
 .env
 *.pdf
+
+# Excluir directorios de configuración de IDE
+.vscode/
+.idea/
+
+# Excluir archivos de configuración de CI/CD
+.github/
+.gitlab-ci.yml
+
+# Excluir archivos de configuración de Docker
+Dockerfile
+docker-compose.yml
+
+# Excluir archivos de configuración de Vercel
+.vercel/
