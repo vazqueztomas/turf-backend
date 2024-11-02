@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7fa5503011032499109c777d36f61d649b9276076ba600991901bda77cea2e2b"
+            "sha256": "57656d3f6320b08c365a242173dedea96fce7a6b3cc512e47ef41f2ebb0278b9"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.12"
+            "python_version": "3.10"
         },
         "sources": [
             {
@@ -768,6 +768,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==2.9.0"
+        },
+        "pypdf": {
+            "hashes": [
+                "sha256:3bd4f503f4ebc58bae40d81e81a9176c400cbbac2ba2d877367595fb524dfdfc",
+                "sha256:425a129abb1614183fd1aca6982f650b47f8026867c0ce7c4b9f281c443d2740"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==5.1.0"
         },
         "pytest": {
             "hashes": [
