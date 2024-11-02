@@ -27,10 +27,6 @@ jobs:
         pip install pipenv
         pipenv install --dev
 
-    - name: Install psycopg2-binary
-      run: |
-        pipenv install psycopg2-binary
-
     - name: Set environment variables
       run: |
 
