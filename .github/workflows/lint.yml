@@ -27,8 +27,13 @@ jobs:
         pip install pipenv
         pipenv install --dev
 
+    - name: Install psycopg2-binary
+      run: |
+        pipenv install psycopg2-binary
+
     - name: Set environment variables
       run: |
+
         echo "ENVIRONMENT=production" >> $GITHUB_ENV
         echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
         echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
