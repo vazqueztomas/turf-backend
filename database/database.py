@@ -17,7 +17,12 @@ class DatabaseConnection:
             yield session
 
 
-database = DatabaseConnection(settings.postgres_url)
+database_url = settings.postgres_url
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+
+database = DatabaseConnection(database_url)
 
 
 def get_connection() -> Generator[Session, None, None]:
