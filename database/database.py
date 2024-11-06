@@ -1,15 +1,13 @@
 from contextlib import contextmanager
 from typing import Generator
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlmodel import SQLModel
+from sqlmodel import Session, SQLModel, create_engine
 
 from core.config.settings import settings
 
 
 class DatabaseConnection:
-    def __init__(self, uri):
+    def __init__(self, uri: str):
         self.engine = create_engine(uri, echo=True)
         SQLModel.metadata.create_all(self.engine)
 

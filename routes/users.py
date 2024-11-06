@@ -46,7 +46,7 @@ def read_users_me(
     return user
 
 
-@router.post("/user", response_model=UserOut)
+@router.post("/create-user", response_model=UserOut)
 def create_user(
     user: UserCreatePayload,
     session: Session = Depends(get_connection),  # noqa: B008

@@ -45,6 +45,7 @@ class UserController:
         new_user = User(**user)
         self.connection.add(new_user)
         self.connection.commit()
+        self.connection.refresh(new_user)
         return new_user
 
     def update_user(
