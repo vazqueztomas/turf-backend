@@ -20,6 +20,7 @@ pytest-cov = "==6.0.0"
 httpx = "*"
 pytest-mock = "==3.14.0"
 exceptiongroup = "==1.2.2"
+tomli = "==2.0.2"
 
 [dev-packages]
 ruff = "*"
