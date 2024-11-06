@@ -19,11 +19,12 @@ fastapi = {extras = ["standard"], version = "*"}
 pytest-cov = "==6.0.0"
 httpx = "*"
 pytest-mock = "==3.14.0"
+exceptiongroup = "==1.2.2"
 
 [dev-packages]
 ruff = "*"
 pylint = "*"
-pytest = "*"
+pytest = "==8.3.3"
 
 [requires]
 python_version = "3.10"
