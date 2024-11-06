@@ -15,16 +15,24 @@ class Settings(BaseSettings):
     db_port: int = Field(
         5432, json_schema_extra={"env": "DB_PORT"}
     )  # Valor por defecto 5432
-    postgres_url: str = Field(..., json_schema_extra={"env": "POSTGRES_URL"})
+    postgres_url: str = Field(..., json_schema_extra={"env": "POSTGRES_URL_NO_SSL"})
 
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
     }
 
+    def get_database_url(self) -> str:
+        # Ajustar la URL solo si está en producción y utiliza "postgres://"
+        if self.environment != "DEVELOPMENT" and self.postgres_url.startswith(
+            "postgres://"
+        ):
+            return self.postgres_url.replace("postgres://", "postgresql://", 1)
+        # En desarrollo, construir la URL directamente
+        return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.db_port}/{self.postgres_database}"  # pylint: disable=line-too-long
+
 
 settings = Settings()
 
-# Configurar la URL de la base de datos basada en el entorno
-if settings.environment == "DEVELOPMENT":
-    settings.postgres_url = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_host}:{settings.db_port}/{settings.postgres_database}"  # pylint: disable=line-too-long
+# Usar el método para obtener la URL correcta
+database_url = settings.get_database_url()
