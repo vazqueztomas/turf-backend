@@ -23,6 +23,11 @@ app.include_router(pdf_reader.router)
 app.include_router(users.router)
 
 
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+
 @app.exception_handler(HTTPException)
 def http_exception_handler(_: Request, exc: HTTPException):
     return JSONResponse(

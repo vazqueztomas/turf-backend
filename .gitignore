@@ -127,3 +127,4 @@ dmypy.json
 .ruff_cache
 __pycache__
 coverage-report.xml
+.vercel
