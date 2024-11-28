@@ -21,11 +21,13 @@ httpx = "*"
 pytest-mock = "==3.14.0"
 exceptiongroup = "==1.2.2"
 tomli = "==2.0.2"
+beautifulsoup4 = "==4.12.3"
 
 [dev-packages]
 ruff = "*"
 pylint = "*"
 pytest = "==8.3.3"
+ipykernel = "*"
 
 [requires]
 python_version = "3.10"
