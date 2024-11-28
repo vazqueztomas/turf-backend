@@ -3,7 +3,7 @@ from typing import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from core.config.settings import settings
+from core.config.settings import database_url
 
 
 class DatabaseConnection:
@@ -15,11 +15,6 @@ class DatabaseConnection:
     def get_session(self) -> Generator[Session, None, None]:
         with Session(self.engine) as session:
             yield session
-
-
-database_url = settings.postgres_url
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 
 database = DatabaseConnection(database_url)
