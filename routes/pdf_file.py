@@ -1,5 +1,3 @@
-import re
-
 from fastapi import APIRouter
 
 from controllers.pdf_file import PdfFileController
