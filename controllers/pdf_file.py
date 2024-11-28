@@ -4,13 +4,13 @@ from typing import List, Union
 import requests
 from bs4 import BeautifulSoup
 
+from utils.date import extract_date
+
 
 class PdfFileController:
     def __init__(self) -> None:
         self.save_dir = Path("files")
-        self.save_dir.mkdir(
-            parents=True, exist_ok=True
-        ) 
+        self.save_dir.mkdir(parents=True, exist_ok=True)
 
     def _make_request(self, url: str) -> str:
         response = requests.get(url)
@@ -39,7 +39,7 @@ class PdfFileController:
             anchor["href"]
             for anchor in anchor_tags
             if "programa-oficial-reunion" in anchor["href"]
-        ] 
+        ]
 
         pdf_urls = []
         for source in pdf_sources:
@@ -49,14 +49,14 @@ class PdfFileController:
                 anchor["href"]
                 for anchor in anchor_tags
                 if anchor["href"].endswith(".pdf")
-                and anchor.text.strip()
-                == "Descargar VersiÃ³n PDF"
+                and anchor.text.strip() == "Descargar VersiÃ³n PDF"
             )
 
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
-            pdf_filename = Path(url).name  
-            file_path = self.save_dir / pdf_filename  
+            pdf_filename = extract_date(pdf_content)
+
+            file_path = self.save_dir / f"{pdf_filename}.pdf"
             self._save_file(file_path, pdf_content)
 
         return "PDFs downloaded successfully"
