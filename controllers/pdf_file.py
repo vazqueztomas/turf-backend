@@ -10,7 +10,7 @@ class PdfFileController:
         self.save_dir = Path("files")
         self.save_dir.mkdir(
             parents=True, exist_ok=True
-        )  # Crear el directorio al inicializar
+        ) 
 
     def _make_request(self, url: str) -> str:
         response = requests.get(url)
@@ -27,22 +27,20 @@ class PdfFileController:
         return soup.find_all("a", href=True)
 
     def _save_file(self, file_path: Path, content: bytes) -> None:
-        with file_path.open("wb") as file_:  # Usar `Path.open`
+        with file_path.open("wb") as file_:
             file_.write(content)
 
     def download_files(self) -> str:
         url = "https://www.palermo.com.ar/es/turf/programa-oficial"
 
-        # Obtener los enlaces de las páginas de PDF
         response_text = self._make_request(url)
         anchor_tags = self._parse_anchor_tags(response_text)
         pdf_sources = [
             anchor["href"]
             for anchor in anchor_tags
             if "programa-oficial-reunion" in anchor["href"]
-        ]  # List comprehension para PERF401
+        ] 
 
-        # Obtener las URLs de los PDFs
         pdf_urls = []
         for source in pdf_sources:
             response_text = self._make_request(source)
@@ -52,14 +50,13 @@ class PdfFileController:
                 for anchor in anchor_tags
                 if anchor["href"].endswith(".pdf")
                 and anchor.text.strip()
-                == "Descargar VersiÃ³n PDF"  # Solución a `Descargar VersiÃ³n PDF`
-            )  # List comprehension para PERF401
+                == "Descargar VersiÃ³n PDF"
+            )
 
-        # Descargar y guardar los PDFs
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
-            pdf_filename = Path(url).name  # Usar `Path.name` para PTH119
-            file_path = self.save_dir / pdf_filename  # Usar `/` para PTH118
+            pdf_filename = Path(url).name  
+            file_path = self.save_dir / pdf_filename  
             self._save_file(file_path, pdf_content)
 
         return "PDFs downloaded successfully"
