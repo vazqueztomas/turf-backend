@@ -10,22 +10,17 @@ month_mapping = {
 
 
 def extract_date(pdf_content: bytes) -> str:
-    # Use BytesIO to simulate a file object from the PDF content bytes
     pdf_file = BytesIO(pdf_content)
     reader = PdfReader(pdf_file)
 
-    # Extract text from the first page
     text = reader.pages[0].extract_text()
 
-    # Regex pattern to extract date information after "REUNION Nº"
     pattern = r"REUNION Nº\s*\d+\s*(?:◇\s*)?(.+?)\s*\."
     match = re.search(pattern, text)
 
     if match:
-        # Extract the date part (e.g., "Viernes, 29 de Noviembre de 2024")
         date_str = match.group(1).strip()
 
-        # Regex to extract day, month name, and year
         date_pattern = r"(\d+)\s+de\s+(\w+)\s+de\s+(\d{4})"
         date_match = re.search(date_pattern, date_str)
 
@@ -34,10 +29,8 @@ def extract_date(pdf_content: bytes) -> str:
             month_name = date_match.group(2)
             year = date_match.group(3)
 
-            # Convert month name to month number
             month = month_mapping.get(month_name, '01')
 
-            # Format as YYYY-MM-DD for file naming
             formatted_date = f"{year}-{month}-{day.zfill(2)}"
             return formatted_date
         else:
