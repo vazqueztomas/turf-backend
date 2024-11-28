@@ -12,9 +12,7 @@ class Settings(BaseSettings):
     postgres_user: str = Field(..., json_schema_extra={"env": "POSTGRES_USER"})
     postgres_password: str = Field(..., json_schema_extra={"env": "POSTGRES_PASSWORD"})
     postgres_host: str = Field(..., json_schema_extra={"env": "POSTGRES_HOST"})
-    db_port: int = Field(
-        5432, json_schema_extra={"env": "DB_PORT"}
-    )  # Valor por defecto 5432
+    db_port: int = Field(5432, json_schema_extra={"env": "DB_PORT"})
     postgres_url: str = Field(..., json_schema_extra={"env": "POSTGRES_URL_NO_SSL"})
 
     model_config = {
