@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routes import pdf_reader, users
+from routes import pdf_file, pdf_reader, users
 
 app = FastAPI()
 
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(pdf_reader.router)
+app.include_router(pdf_file.router)
 app.include_router(users.router)
 
 
