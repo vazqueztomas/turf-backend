@@ -128,5 +128,3 @@ dmypy.json
 __pycache__
 coverage-report.xml
 .vercel
-
-files

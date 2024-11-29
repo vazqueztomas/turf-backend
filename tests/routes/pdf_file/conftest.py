@@ -1,9 +1,11 @@
 import pytest
 
+from turf_backend.models.turf import AvailableLocations
+
 
 @pytest.fixture()
 def valid_pdf_filename() -> str:
-    return "1212__a6e4f41397df62b45b5037d1f96df65c.pdf"
+    return "2024-12-02.pdf"
 
 
 @pytest.fixture()
@@ -13,4 +15,4 @@ def invalid_pdf_filename() -> str:
 
 @pytest.fixture()
 def location() -> str:
-    return "palermo"
+    return AvailableLocations.PALERMO.value
