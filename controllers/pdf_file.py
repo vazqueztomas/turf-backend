@@ -1,12 +1,15 @@
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 import requests
 from bs4 import BeautifulSoup
 
+from models.turf import AvailableLocations
 from utils.date import extract_date
 
 
+# TODO: Download PDFs from this other location
+# https://hipodromosanisidro.com/programas/
 class PdfFileController:
     def __init__(self) -> None:
         self.save_dir = Path("files")
@@ -56,7 +59,15 @@ class PdfFileController:
             pdf_content = self._download_pdf(url)
             pdf_filename = extract_date(pdf_content)
 
-            file_path = self.save_dir / f"{pdf_filename}.pdf"
+            (self.save_dir / Path("palermo")).mkdir(parents=True,
+                                                    exist_ok=True)  # TODO: Refactor this
+            file_path = self.save_dir / Path("palermo") / f"{pdf_filename}.pdf"
             self._save_file(file_path, pdf_content)
 
         return "PDFs downloaded successfully"
+
+    def list_all_pdfs(self, turf: AvailableLocations) -> List[str]:
+        pdf_dir = Path(f"files/{turf.value}")
+        pdf_files = list(pdf_dir.glob("*.pdf"))
+
+        return [file.name for file in pdf_files]
