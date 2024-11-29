@@ -3,7 +3,8 @@ from typing import List, Union
 
 import requests
 from bs4 import BeautifulSoup
-from utils.date import extract_date
+
+from turf_backend.utils.date import extract_date
 
 
 class PdfFileController:
