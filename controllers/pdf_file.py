@@ -62,7 +62,7 @@ class PdfFileController:
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
             pdf_filename = extract_date(pdf_content)
-            location_dir_path = self.save_dir / Path("palermo")
+            location_dir_path = self.save_dir / Path(AvailableLocations.palermo.value)
             location_dir_path.mkdir(parents=True,exist_ok=True)  
             file_path = location_dir_path / f"{pdf_filename}.pdf"
             self._save_file(file_path, pdf_content)
