@@ -3,11 +3,13 @@ from typing import List, Union
 
 import requests
 from bs4 import BeautifulSoup
-
 from utils.date import extract_date
 
 
 class PdfFileController:
+    BASE_URL = "https://www.palermo.com.ar/es/turf/programa-oficial"
+    PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
+
     def __init__(self) -> None:
         self.save_dir = Path("files")
         self.save_dir.mkdir(parents=True, exist_ok=True)
@@ -31,9 +33,7 @@ class PdfFileController:
             file_.write(content)
 
     def download_files(self) -> str:
-        url = "https://www.palermo.com.ar/es/turf/programa-oficial"
-
-        response_text = self._make_request(url)
+        response_text = self._make_request(self.BASE_URL)
         anchor_tags = self._parse_anchor_tags(response_text)
         pdf_sources = [
             anchor["href"]
@@ -49,7 +49,7 @@ class PdfFileController:
                 anchor["href"]
                 for anchor in anchor_tags
                 if anchor["href"].endswith(".pdf")
-                and anchor.text.strip() == "Descargar VersiÃ³n PDF"
+                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT
             )
 
         for url in pdf_urls:

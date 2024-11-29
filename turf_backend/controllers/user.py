@@ -4,15 +4,15 @@ from typing import Any, Optional
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from auth import (
+from turf_backend.core.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     decode_access_token,
     get_password_hash,
     verify_password,
 )
-from models.user import User
-from schemas.user import AccessToken, UserCreatePayload
+from turf_backend.models.user import User
+from turf_backend.schemas.user import AccessToken, UserCreatePayload
 
 
 class AuthorizationRequest(BaseModel):

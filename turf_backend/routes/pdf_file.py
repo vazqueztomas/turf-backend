@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from controllers.pdf_file import PdfFileController
+from turf_backend.controllers.pdf_file import PdfFileController
 
 router = APIRouter(prefix="/files")
 
