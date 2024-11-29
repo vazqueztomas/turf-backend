@@ -38,8 +38,8 @@ def http_exception_handler(_: Request, exc: HTTPException):
 
 
 @app.exception_handler(Exception)
-def global_exception_handler():
+def global_exception_handler(request: Request, exc: Exception):  # noqa: ARG001
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal Server Error"},
+        content={"message": "An unexpected error occurred.", "detail": str(exc)},
     )
