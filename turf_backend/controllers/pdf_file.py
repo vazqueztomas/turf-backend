@@ -3,8 +3,8 @@ from typing import List, Optional, Union
 
 import requests
 from bs4 import BeautifulSoup
-from models.turf import AvailableLocations
 
+from turf_backend.models.turf import AvailableLocations
 from turf_backend.utils.date import extract_date
 
 

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
-from models.turf import AvailableLocations
 from starlette.responses import FileResponse, JSONResponse
 
 from turf_backend.controllers.pdf_file import PdfFileController
+from turf_backend.models.turf import AvailableLocations
 
 router = APIRouter(prefix="/files")
 
