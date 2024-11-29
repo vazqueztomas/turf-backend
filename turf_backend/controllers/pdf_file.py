@@ -1,12 +1,15 @@
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 import requests
 from bs4 import BeautifulSoup
+from models.turf import AvailableLocations
 
 from turf_backend.utils.date import extract_date
 
 
+# TODO(Mati): Download PDFs from this other location
+# https://hipodromosanisidro.com/programas/
 class PdfFileController:
     BASE_URL = "https://www.palermo.com.ar/es/turf/programa-oficial"
     PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
@@ -33,8 +36,11 @@ class PdfFileController:
         with file_path.open("wb") as file_:
             file_.write(content)
 
-    def download_files(self) -> str:
-        response_text = self._make_request(self.BASE_URL)
+    # TODO(mati): Refactor this and try to make it more generic
+    def download_files_from_external_sources(self) -> str:  # pylint: disable=too-many-locals
+        url = "https://www.palermo.com.ar/es/turf/programa-oficial"
+
+        response_text = self._make_request(url)
         anchor_tags = self._parse_anchor_tags(response_text)
         pdf_sources = [
             anchor["href"]
@@ -42,9 +48,12 @@ class PdfFileController:
             if "programa-oficial-reunion" in anchor["href"]
         ]
 
+        if not pdf_sources:
+            return "No PDFs sources found"
+
         pdf_urls = []
         for source in pdf_sources:
-            response_text = self._make_request(source)
+            response_text = self._make_request(source)  # type: ignore[arg-type]
             anchor_tags = self._parse_anchor_tags(response_text)
             pdf_urls.extend(
                 anchor["href"]
@@ -56,8 +65,22 @@ class PdfFileController:
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
             pdf_filename = extract_date(pdf_content)
-
-            file_path = self.save_dir / f"{pdf_filename}.pdf"
+            location_dir_path = self.save_dir / Path(AvailableLocations.palermo.value)
+            location_dir_path.mkdir(parents=True, exist_ok=True)
+            file_path = location_dir_path / f"{pdf_filename}.pdf"
             self._save_file(file_path, pdf_content)
 
         return "PDFs downloaded successfully"
+
+    def list_available_files(self, turf: AvailableLocations) -> List[str]:
+        pdf_dir = Path(f"files/{turf.value}")
+        pdf_files = list(pdf_dir.glob("*.pdf"))
+
+        return [file.name for file in pdf_files]
+
+    def retrieve_file(self, turf: AvailableLocations, filename: str) -> Optional[Path]:
+        pdf_dir = Path(f"files/{turf.value}/{filename}")
+        if not pdf_dir.exists():
+            return None
+
+        return pdf_dir
