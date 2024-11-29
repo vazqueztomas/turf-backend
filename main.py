@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from turf_backend.routes import pdf_file, pdf_reader, users
+from turf_backend.routes import pdf_file, users
 
 app = FastAPI()
 
@@ -19,14 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(pdf_reader.router)
 app.include_router(pdf_file.router)
 app.include_router(users.router)
 
 
 @app.get("/")
-def root():
-    return {"message": "Hello World"}
+def healtcheck():
+    return {"status": "ok"}
 
 
 @app.exception_handler(HTTPException)
