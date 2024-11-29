@@ -1,5 +1,7 @@
+from typing import Union
+
 from fastapi import APIRouter
-from starlette.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from turf_backend.controllers.pdf_file import PdfFileController
 from turf_backend.models.turf import AvailableLocations
@@ -28,7 +30,7 @@ def list_available_files(location: AvailableLocations) -> list[str]:
 @router.get("/{location}/{filename}", response_model=None)
 def retrieve_file(
     location: AvailableLocations, filename: str
-) -> JSONResponse | FileResponse:
+) -> Union[JSONResponse, FileResponse]:
     pdf_file_controller = PdfFileController()
 
     file_location = pdf_file_controller.retrieve_file(location, filename)
