@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routes import pdf_file, pdf_reader, users
+from turf_backend.routes import pdf_file, pdf_reader, users
 
 app = FastAPI()
 

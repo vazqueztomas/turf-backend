@@ -4,13 +4,16 @@ from typing import List, Optional, Union
 import requests
 from bs4 import BeautifulSoup
 
-from models.turf import AvailableLocations
-from utils.date import extract_date
+from turf_backend.models.turf import AvailableLocations
+from turf_backend.utils.date import extract_date
 
 
-# TODO: Download PDFs from this other location
+# TODO(Mati): Download PDFs from this other location
 # https://hipodromosanisidro.com/programas/
 class PdfFileController:
+    BASE_URL = "https://www.palermo.com.ar/es/turf/programa-oficial"
+    PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
+
     def __init__(self) -> None:
         self.save_dir = Path("files")
         self.save_dir.mkdir(parents=True, exist_ok=True)
@@ -33,8 +36,8 @@ class PdfFileController:
         with file_path.open("wb") as file_:
             file_.write(content)
 
-    # TODO: Refactor this and try to make it more generic
-    def download_files_from_external_sources(self) -> str:
+    # TODO(mati): Refactor this and try to make it more generic
+    def download_files_from_external_sources(self) -> str:  # pylint: disable=too-many-locals
         url = "https://www.palermo.com.ar/es/turf/programa-oficial"
 
         response_text = self._make_request(url)
@@ -44,26 +47,26 @@ class PdfFileController:
             for anchor in anchor_tags
             if "programa-oficial-reunion" in anchor["href"]
         ]
-        
+
         if not pdf_sources:
             return "No PDFs sources found"
 
         pdf_urls = []
         for source in pdf_sources:
-            response_text = self._make_request(source) # type: ignore[arg-type] 
+            response_text = self._make_request(source)  # type: ignore[arg-type]
             anchor_tags = self._parse_anchor_tags(response_text)
             pdf_urls.extend(
                 anchor["href"]
                 for anchor in anchor_tags
-                if anchor["href"].endswith(".pdf") # type: ignore[index]
-                and anchor.text.strip() == "Descargar VersiÃ³n PDF" # type: ignore[index]
+                if anchor["href"].endswith(".pdf")
+                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT
             )
 
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
             pdf_filename = extract_date(pdf_content)
             location_dir_path = self.save_dir / Path(AvailableLocations.palermo.value)
-            location_dir_path.mkdir(parents=True,exist_ok=True)  
+            location_dir_path.mkdir(parents=True, exist_ok=True)
             file_path = location_dir_path / f"{pdf_filename}.pdf"
             self._save_file(file_path, pdf_content)
 
@@ -74,11 +77,10 @@ class PdfFileController:
         pdf_files = list(pdf_dir.glob("*.pdf"))
 
         return [file.name for file in pdf_files]
-    
-    
+
     def retrieve_file(self, turf: AvailableLocations, filename: str) -> Optional[Path]:
         pdf_dir = Path(f"files/{turf.value}/{filename}")
         if not pdf_dir.exists():
-            return 
-        
+            return None
+
         return pdf_dir

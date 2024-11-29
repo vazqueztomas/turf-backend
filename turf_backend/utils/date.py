@@ -4,12 +4,22 @@ from io import BytesIO
 from pypdf import PdfReader
 
 month_mapping = {
-    'Enero': '01', 'Febrero': '02', 'Marzo': '03', 'Abril': '04', 'Mayo': '05', 'Junio': '06',
-    'Julio': '07', 'Agosto': '08', 'Septiembre': '09', 'Octubre': '10', 'Noviembre': '11', 'Diciembre': '12'
+    "Enero": "01",
+    "Febrero": "02",
+    "Marzo": "03",
+    "Abril": "04",
+    "Mayo": "05",
+    "Junio": "06",
+    "Julio": "07",
+    "Agosto": "08",
+    "Septiembre": "09",
+    "Octubre": "10",
+    "Noviembre": "11",
+    "Diciembre": "12",
 }
 
 
-def extract_date(pdf_content: bytes) -> str:
+def extract_date(pdf_content: bytes) -> str:  # pylint: disable=too-many-locals
     pdf_file = BytesIO(pdf_content)
     reader = PdfReader(pdf_file)
 
@@ -29,14 +39,13 @@ def extract_date(pdf_content: bytes) -> str:
             month_name = date_match.group(2)
             year = date_match.group(3)
 
-            month = month_mapping.get(month_name, '01')
+            month = month_mapping.get(month_name, "01")
 
-            formatted_date = f"{year}-{month}-{day.zfill(2)}"
-            return formatted_date
-        else:
-            raise ValueError("Date format not recognized in the PDF")
-    else:
-        raise ValueError("No matching date pattern found in the PDF")
+            return f"{year}-{month}-{day.zfill(2)}"
+        msg_error = "Date format not recognized in the PDF"
+        raise ValueError(msg_error)
+    msg_error = "No matching date pattern found in the PDF"
+    raise ValueError(msg_error)
 
 
 def convert_to_date(date_str: str) -> str:
@@ -49,9 +58,8 @@ def convert_to_date(date_str: str) -> str:
         year = match.group(4)
 
         # Default to January if not found
-        month = month_mapping.get(month_name, '01')
+        month = month_mapping.get(month_name, "01")
 
-        formatted_date = f"{year}-{month}-{day.zfill(2)}"
-        return formatted_date
-    else:
-        raise ValueError("Invalid date format")
+        return f"{year}-{month}-{day.zfill(2)}"
+    msg_error = "Invalid date format"
+    raise ValueError(msg_error)

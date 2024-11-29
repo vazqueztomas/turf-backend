@@ -25,33 +25,25 @@ source = [
     "schemas"
 ]
 [tool.coverage.report]
-# Regexes for lines to exclude from consideration
 exclude_also = [
-    # Don't complain about missing debug-only code:
     "def __repr__",
     "if self\\.debug",
 
-    # Don't complain if tests don't hit defensive assertion code:
     "raise AssertionError",
     "raise NotImplementedError",
 
-    # Don't complain if non-runnable code isn't run:
     "if 0:",
     "if __name__ == .__main__.:",
 
-    # Don't complain about abstract methods, they aren't run:
     "@(abc\\.)?abstractmethod",
     ]
 
 
 [tool.coverage.xml]
-# Output file for the XML report
 output = "coverage.xml"
 
 [tool.coverage.html]
-# Directory to output the HTML report
 directory = "htmlcov"
-# Title for the HTML report
 title = "Coverage Report"
 
 ######################
@@ -76,6 +68,7 @@ exclude = [
     "dist",
     "site-packages",
     "venv",
+    "playground"
 ]
 
 
@@ -113,7 +106,7 @@ extend-select = [
     'FURB',
     'RUF',
 ]
-ignore = ["COM812", "ISC001"]
+ignore = ["COM812", "ISC001", "TD003", "FIX002"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -145,7 +138,7 @@ load-plugins = [
 [tool.pylint."MESSAGES CONTROL"]
 fail-on = ["I"]
 fail-under = '10'
-ignore = ['.git', 'playground.py']
+ignore = ['.git', 'playground.py', "playground/*"]
 ignore-patterns = ''
 jobs = 4
 limit-inference-results = 100

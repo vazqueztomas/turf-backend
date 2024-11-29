@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session
 
-from controllers.user import AuthorizationRequest, UserController
-from database.database import get_connection
-from schemas.user import AccessToken, UserCreatePayload, UserOut
+from turf_backend.controllers.user import AuthorizationRequest, UserController
+from turf_backend.database.database import get_connection
+from turf_backend.schemas.user import AccessToken, UserCreatePayload, UserOut
 
 router = APIRouter()
 

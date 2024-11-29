@@ -4,7 +4,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from main import app
-from schemas.user import UserOut
+from turf_backend.schemas.user import UserOut
 
 client = TestClient(app)
 

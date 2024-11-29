@@ -3,7 +3,7 @@ from typing import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from core.config.settings import database_url
+from turf_backend.core.config.settings import database_url
 
 
 class DatabaseConnection:
