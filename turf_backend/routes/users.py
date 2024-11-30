@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session
 
-from turf_backend.controllers.user import AuthorizationRequest, UserController
 from turf_backend.database.database import get_connection
 from turf_backend.schemas.user import AccessToken, UserCreatePayload, UserOut
+from turf_backend.services.user import AuthorizationRequest, UserService
 
 router = APIRouter()
 
@@ -13,8 +13,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @router.get("/user", response_model=list[UserOut])
 def read_users(session: Session = Depends(get_connection)) -> list[UserOut]:  # noqa: B008
-    user_controller = UserController(session)
-    users = user_controller.get_users()
+    user_service = UserService(session)
+    users = user_service.get_users()
     return [
         UserOut(email=user.email, name=user.name, authorized=user.authorized)
         for user in users
@@ -26,8 +26,8 @@ def read_users_me(
     token: str = Depends(oauth2_scheme),
     session: Session = Depends(get_connection),  # noqa: B008
 ):
-    user_controller = UserController(session)
-    payload = user_controller.decode_access_token(token)
+    user_service = UserService(session)
+    payload = user_service.decode_access_token(token)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -36,7 +36,7 @@ def read_users_me(
         )
 
     email: str = payload.get("sub")
-    user = user_controller.get_user(email)
+    user = user_service.get_user(email)
 
     if not user:
         raise HTTPException(
@@ -51,8 +51,8 @@ def create_user(
     user: UserCreatePayload,
     session: Session = Depends(get_connection),  # noqa: B008
 ) -> UserOut:
-    user_controller = UserController(session)
-    new_user = user_controller.create_user(user)
+    user_service = UserService(session)
+    new_user = user_service.create_user(user)
 
     if not new_user:
         raise HTTPException(
@@ -69,8 +69,8 @@ def authorize_user(
     auth_request: AuthorizationRequest,
     session: Session = Depends(get_connection),  # noqa: B008
 ) -> UserOut:
-    user_controller = UserController(session)
-    user = user_controller.update_user(email, auth_request)
+    user_service = UserService(session)
+    user = user_service.update_user(email, auth_request)
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -83,8 +83,8 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),  # noqa: B008
     session: Session = Depends(get_connection),  # noqa: B008
 ) -> AccessToken:
-    user_controller = UserController(session)
-    access_token = user_controller.login(form_data.username, form_data.password)
+    user_service = UserService(session)
+    access_token = user_service.login(form_data.username, form_data.password)
 
     if not access_token:
         raise HTTPException(

@@ -10,7 +10,7 @@ from turf_backend.utils.date import extract_date
 
 # TODO(Mati): Download PDFs from this other location
 # https://hipodromosanisidro.com/programas/
-class PdfFileController:
+class PdfFileService:
     BASE_URL: str = "https://www.palermo.com.ar/es/turf/programa-oficial"
     PDF_DOWNLOAD_TEXT: str = "Descargar VersiÃ³n PDF"
 

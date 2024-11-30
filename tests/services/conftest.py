@@ -1,8 +1,9 @@
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from turf_backend.controllers.pdf_file import PdfFileController
+from turf_backend.services.pdf_file import PdfFileService
 
 
 @pytest.fixture()
@@ -11,22 +12,20 @@ def pdf_sources() -> list[str]:
 
 
 @pytest.fixture()
-def pdf_file_controller() -> PdfFileController:
-    return PdfFileController()
+def pdf_file_service() -> PdfFileService:
+    return PdfFileService()
 
 
 @pytest.fixture()
-def mock_make_request() -> MagicMock:
-    with patch(
-        "turf_backend.controllers.pdf_file.PdfFileController._make_request"
-    ) as mock:
+def mock_make_request() -> Generator[MagicMock, None, None]:
+    with patch("turf_backend.services.pdf_file.PdfFileService._make_request") as mock:
         yield mock
 
 
 @pytest.fixture()
-def mock_parse_anchor_tags() -> MagicMock:
+def mock_parse_anchor_tags() -> Generator[MagicMock, None, None]:
     with patch(
-        "turf_backend.controllers.pdf_file.PdfFileController._parse_anchor_tags"
+        "turf_backend.services.pdf_file.PdfFileService._parse_anchor_tags"
     ) as mock:
         yield mock
 
@@ -58,7 +57,7 @@ def download_pdf_text() -> str:
 
 @pytest.fixture()
 def mock_response_html(
-    link_pdf_1: str, link_pdf_2: str, link_pdf_3: 3, download_pdf_text: str
+    link_pdf_1: str, link_pdf_2: str, link_pdf_3: str, download_pdf_text: str
 ) -> str:
     return f"""
     <html>

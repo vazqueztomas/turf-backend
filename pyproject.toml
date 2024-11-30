@@ -20,7 +20,7 @@ source = [
     "core",
     "database",
     "models",
-    "controllers",
+    "services",
     "routes",
     "schemas"
 ]
