@@ -28,37 +28,38 @@ def extract_date_from_pdf(pdf_content: bytes) -> str:  # pylint: disable=too-man
     pattern = r"REUNION Nº\s*\d+\s*(?:◇\s*)?(.+?)\s*\."
     match = re.search(pattern, text)
 
-    if match:
-        date_str = match.group(1).strip()
+    if not match:
+        msg_error = "No matching date pattern found in the PDF"
+        raise ValueError(msg_error)
 
-        date_pattern = r"(\d+)\s+de\s+(\w+)\s+de\s+(\d{4})"
-        date_match = re.search(date_pattern, date_str)
+    date_str = match.group(1).strip()
+    date_pattern = r"(\d+)\s+de\s+(\w+)\s+de\s+(\d{4})"
+    date_match = re.search(date_pattern, date_str)
 
-        if date_match:
-            day = date_match.group(1)
-            month_name = date_match.group(2)
-            year = date_match.group(3)
-
-            month = month_mapping.get(month_name, "01")
-
-            return f"{year}-{month}-{day.zfill(2)}"
+    if not date_match:
         msg_error = "Date format not recognized in the PDF"
         raise ValueError(msg_error)
-    msg_error = "No matching date pattern found in the PDF"
-    raise ValueError(msg_error)
+
+    day = date_match.group(1)
+    month_name = date_match.group(2)
+    year = date_match.group(3)
+
+    month = month_mapping.get(month_name, "01")
+
+    return f"{year}-{month}-{day.zfill(2)}"
 
 
 def convert_to_date(date_str: str) -> str:
     pattern = r"(\w+),\s*(\d+)\s+de\s+(\w+)\s+de\s+(\d{4})"
     match = re.search(pattern, date_str)
 
-    if match:
-        day = match.group(2)
-        month_name = match.group(3)
-        year = match.group(4)
+    if not match:
+        msg_error = "Invalid date format"
+        raise ValueError(msg_error)
 
-        month = month_mapping.get(month_name, "01")
+    day = match.group(2)
+    month_name = match.group(3)
+    year = match.group(4)
+    month = month_mapping.get(month_name, "01")
 
-        return f"{year}-{month}-{day.zfill(2)}"
-    msg_error = "Invalid date format"
-    raise ValueError(msg_error)
+    return f"{year}-{month}-{day.zfill(2)}"
