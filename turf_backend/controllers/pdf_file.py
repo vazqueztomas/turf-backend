@@ -11,8 +11,8 @@ from turf_backend.utils.date import extract_date
 # TODO(Mati): Download PDFs from this other location
 # https://hipodromosanisidro.com/programas/
 class PdfFileController:
-    BASE_URL = "https://www.palermo.com.ar/es/turf/programa-oficial"
-    PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
+    BASE_URL: str = "https://www.palermo.com.ar/es/turf/programa-oficial"
+    PDF_DOWNLOAD_TEXT: str = "Descargar VersiÃ³n PDF"
 
     def __init__(self) -> None:
         self.save_dir = Path("files")
@@ -36,31 +36,40 @@ class PdfFileController:
         with file_path.open("wb") as file_:
             file_.write(content)
 
-    # TODO(mati): Refactor this and try to make it more generic
-    def download_files_from_external_sources(self) -> str:  # pylint: disable=too-many-locals
-        url = "https://www.palermo.com.ar/es/turf/programa-oficial"
-
-        response_text = self._make_request(url)
+    def _get_pdf_links(self, page_url: str, filter_text: str) -> list[str]:
+        """Get PDF links from a given page URL, filtered by text."""
+        response_text = self._make_request(page_url)
         anchor_tags = self._parse_anchor_tags(response_text)
-        pdf_sources = [
+        return [
             anchor["href"]
             for anchor in anchor_tags
-            if "programa-oficial-reunion" in anchor["href"]
+            if anchor["href"].endswith(".pdf") and anchor.text.strip() == filter_text  # type: ignore[union-attr]
         ]
 
+    def _get_program_links(self, base_url: str) -> List[str]:
+        """Get the program links from the base URL."""
+        response_text = self._make_request(base_url)
+        anchor_tags = self._parse_anchor_tags(response_text)
+        return [
+            anchor["href"]
+            for anchor in anchor_tags
+            if "programa-oficial-reunion" in anchor["href"]  # type: ignore[union-attr]
+        ]
+
+    # TODO(Mati): Try to make it more generic
+    def download_files_from_external_sources(self) -> str:
+        """Download PDF files from external sources."""
+        pdf_sources = self._get_program_links(self.BASE_URL)
+
         if not pdf_sources:
-            return "No PDFs sources found"
+            return "No PDF sources found"
 
         pdf_urls = []
         for source in pdf_sources:
-            response_text = self._make_request(source)  # type: ignore[arg-type]
-            anchor_tags = self._parse_anchor_tags(response_text)
-            pdf_urls.extend(
-                anchor["href"]
-                for anchor in anchor_tags
-                if anchor["href"].endswith(".pdf")
-                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT
-            )
+            pdf_urls.extend(self._get_pdf_links(source, self.PDF_DOWNLOAD_TEXT))
+
+        if not pdf_urls:
+            return "No PDFs found"
 
         for url in pdf_urls:
             pdf_content = self._download_pdf(url)
