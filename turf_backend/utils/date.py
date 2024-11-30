@@ -57,7 +57,6 @@ def convert_to_date(date_str: str) -> str:
         month_name = match.group(3)
         year = match.group(4)
 
-        # Default to January if not found
         month = month_mapping.get(month_name, "01")
 
         return f"{year}-{month}-{day.zfill(2)}"
