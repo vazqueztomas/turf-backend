@@ -13,8 +13,8 @@ def pdf_content() -> bytes:
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="REUNION Nº1 Sabado, 1 de Junio de 2024.", ln=True, align="L")
-    pdf_content = pdf.output(dest="S").encode("latin1")
+    pdf.cell(200, 10, txt="REUNION Nº1 Sabado, 1 de Junio de 2024.", ln=True, align="L")  # type: ignore[attr-defined]
+    pdf_content = pdf.output(dest="S").encode("latin1")  # type: ignore[attr-defined]
     buffer.write(pdf_content)
     buffer.seek(0)
 
