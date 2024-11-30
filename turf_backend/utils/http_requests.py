@@ -3,6 +3,8 @@ from typing import Optional, TypedDict
 
 import requests
 
+from .logger import LogLevels, log
+
 
 class HTTPMethods(str, Enum):
     GET = "GET"
@@ -21,9 +23,13 @@ def request_http(
 ) -> HTTPResponse:
     try:
         response = requests.request(method.value, url)  # type: ignore[attr-defined]
+        log(f"HTTP {method} request to {url} returned {response.status_code}")
         return {"status_code": response.status_code, "text": response.text}  # noqa: TRY300
     except requests.exceptions.RequestException as error:
-        print(f"Error while making HTTP {method} request to {url}: {error=}")  # noqa: T201
+        log(
+            f"Error while making HTTP {method} request to {url}: {error=}",
+            LogLevels.ERROR,
+        )
         return {
             "status_code": 500,
             "text": f"Error while making HTTP {method} request to {url}: {error=}",

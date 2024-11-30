@@ -22,6 +22,7 @@ pytest-mock = "==3.14.0"
 exceptiongroup = "==1.2.2"
 tomli = "==2.0.2"
 beautifulsoup4 = "==4.12.3"
+loguru = "==0.7.2"
 
 [dev-packages]
 ruff = "*"
