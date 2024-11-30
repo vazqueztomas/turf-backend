@@ -19,7 +19,7 @@ month_mapping = {
 }
 
 
-def extract_date(pdf_content: bytes) -> str:  # pylint: disable=too-many-locals
+def extract_date_from_pdf(pdf_content: bytes) -> str:  # pylint: disable=too-many-locals
     pdf_file = BytesIO(pdf_content)
     reader = PdfReader(pdf_file)
 
