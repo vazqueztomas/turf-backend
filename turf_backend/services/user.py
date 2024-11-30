@@ -19,7 +19,7 @@ class AuthorizationRequest(BaseModel):
     authorized: bool
 
 
-class UserController:
+class UserService:
     def __init__(self, session: Session):
         self.connection = session
 

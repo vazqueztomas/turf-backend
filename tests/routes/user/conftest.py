@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.fixture()
-def user_controller_mock(mocker) -> None:
-    return mocker.patch("turf_backend.routes.users.UserController")
+def user_service_mock(mocker) -> None:
+    return mocker.patch("turf_backend.routes.users.UserService")
 
 
 @pytest.fixture()
