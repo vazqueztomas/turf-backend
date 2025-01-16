@@ -29,4 +29,4 @@ def test_download_files_from_external_sources() -> None:
     response = client.get("/files/download")
     assert response.status_code == 200
     # TODO(Tomas): Fix this test
-    # assert response.json() == {"message": "PDFs downloaded successfully"}  # noqa: ERA001
+    # assert response.json()  # noqa: ERA001
