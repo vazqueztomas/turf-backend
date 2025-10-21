@@ -1,64 +1,66 @@
-from unittest.mock import MagicMock, patch
+from collections.abc import Generator
+from typing import Any
+from unittest.mock import patch
 
 import pytest
 
 from turf_backend.controllers.pdf_file import PdfFileController
 
 
-@pytest.fixture()
+@pytest.fixture
 def pdf_sources() -> list[str]:
     return ["https://www.palermo.com.ar/es/turf/programa-oficial"]
 
 
-@pytest.fixture()
+@pytest.fixture
 def pdf_file_controller() -> PdfFileController:
     return PdfFileController()
 
 
-@pytest.fixture()
-def mock_make_request() -> MagicMock:
+@pytest.fixture
+def mock_make_request() -> Generator[Any, Any, Any]:
     with patch(
         "turf_backend.controllers.pdf_file.PdfFileController._make_request"
     ) as mock:
         yield mock
 
 
-@pytest.fixture()
-def mock_parse_anchor_tags() -> MagicMock:
+@pytest.fixture
+def mock_parse_anchor_tags() -> Generator[Any, Any, Any]:
     with patch(
         "turf_backend.controllers.pdf_file.PdfFileController._parse_anchor_tags"
     ) as mock:
         yield mock
 
 
-@pytest.fixture()
+@pytest.fixture
 def link_pdf_1() -> str:
     return "https://www.palermo.com.ar/es/turf/programa-oficial-reunion-1.pdf"
 
 
-@pytest.fixture()
+@pytest.fixture
 def link_pdf_2() -> str:
     return "https://www.palermo.com.ar/es/turf/programa-oficial-reunion-2.pdf"
 
 
-@pytest.fixture()
+@pytest.fixture
 def link_pdf_3() -> str:
     return "https://www.palermo.com.ar/es/turf/programa-oficial-reunion-3.pdf"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_pdf_urls() -> str:
-    return ("https://www.palermo.com.ar/es/turf/programa-oficial-reunion-1.pdf",)
+    return "https://www.palermo.com.ar/es/turf/programa-oficial-reunion-1.pdf"
 
 
-@pytest.fixture()
+@pytest.fixture
 def download_pdf_text() -> str:
     return "Descargar VersiÃ³n PDF"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_response_html(
-    link_pdf_1: str, link_pdf_2: str, link_pdf_3: 3, download_pdf_text: str
+    link_pdf_1: str, link_pdf_2: str, link_pdf_3: str, download_pdf_text: str
 ) -> str:
     return f"""
     <html>
@@ -71,7 +73,7 @@ def mock_response_html(
     """
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_anchor_tags(
     link_pdf_1: str, link_pdf_2: str, link_pdf_3: str, download_pdf_text: str
 ) -> list[dict]:

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from main import app
+from turf_backend.main import app
 from turf_backend.schemas.user import UserOut
 
 client = TestClient(app)
