@@ -29,8 +29,9 @@ pydantic-settings = "==2.7.1"
 
 
 [requires]
-python_version = "3.10"
+python_version = "3.12"
 
 [scripts]
 format = "pre-commit run --all-files"
 test = "pytest --cov=turf_backend --cov-report term-missing:skip-covered --cov-report xml:coverage-report.xml --junitxml=coverage.xml tests"
+server = "sh -c 'docker compose up -d && uvicorn turf_backend.main:app --reload'"

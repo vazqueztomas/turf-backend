@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from turf_backend.routes import pdf_file, users
 
-app = FastAPI()
+app = FastAPI(redoc_url="/swagger")
 
 origins = [
     "http://localhost:5173",
