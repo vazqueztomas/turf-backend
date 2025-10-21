@@ -1,101 +1,77 @@
+from collections.abc import Sequence
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlmodel import Session
+from sqlmodel import Session, select
 
-from turf_backend.controllers.user import AuthorizationRequest, UserController
-from turf_backend.database.database import get_connection
-from turf_backend.schemas.user import AccessToken, UserCreatePayload, UserOut
+from turf_backend.auth import (
+    AccessToken,
+    User,
+    UserCreatePayload,
+    UserOut,
+    create_access_token,
+    hash_password,
+    verify_password,
+)
+from turf_backend.database import get_connection
 
-router = APIRouter()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-@router.get("/user", response_model=list[UserOut])
-def read_users(session: Session = Depends(get_connection)) -> list[UserOut]:  # noqa: B008
-    user_controller = UserController(session)
-    users = user_controller.get_users()
-    return [
-        UserOut(email=user.email, name=user.name, authorized=user.authorized)
-        for user in users
-    ]
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/user/me", response_model=UserOut)
-def read_users_me(
-    token: str = Depends(oauth2_scheme),
-    session: Session = Depends(get_connection),  # noqa: B008
-):
-    user_controller = UserController(session)
-    payload = user_controller.decode_access_token(token)
-    if not payload:
+@router.get("/")
+def get_all_users(db: Session = Depends(get_connection)) -> Sequence[User]:
+    statement = select(User)
+    return db.exec(statement).all()
+
+
+@router.get("/{user_id}")
+def get_user_by_id(user_id: int, db: Session = Depends(get_connection)) -> UserOut:
+    existing_user = db.exec(select(User).where(User.id == user_id)).first()
+    if not existing_user:
+        raise HTTPException(status_code=400, detail="That user does not exists.")
+    return UserOut(
+        email=existing_user.email,
+        name=existing_user.name,
+        authorized=existing_user.authorized,
+    )
+
+
+@router.post("/register", response_model=UserOut)
+def register_user(payload: UserCreatePayload, db: Session = Depends(get_connection)):
+    existing_user = db.exec(select(User).where(User.email == payload.email)).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = hash_password(payload.password)
+    user = User(email=payload.email, name=payload.name, hashed_password=hashed_pw)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return UserOut(email=user.email, name=user.name, authorized=user.authorized)
+
+
+@router.post("/login", response_model=AccessToken)
+def login_user(payload: UserCreatePayload, db: Session = Depends(get_connection)):
+    user = db.exec(select(User).where(User.email == payload.email)).first()
+    if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
-    email: str = payload.get("sub")
-    user = user_controller.get_user(email)
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-    return user
+    token = create_access_token({"sub": user.email})
+    return AccessToken(access_token=token, token_type="bearer")
 
 
-@router.post("/create-user", response_model=UserOut)
-def create_user(
-    user: UserCreatePayload,
-    session: Session = Depends(get_connection),  # noqa: B008
-) -> UserOut:
-    user_controller = UserController(session)
-    new_user = user_controller.create_user(user)
+@router.post("/authorize/{user_id}")
+def authorize_user(user_id: int, db: Session = Depends(get_connection)) -> User:
+    existing_user = db.exec(select(User).where(User.id == user_id)).first()
+    if not existing_user:
+        raise HTTPException(status_code=400, detail="That user does not exists.")
 
-    if not new_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
-        )
+    if existing_user.authorized:
+        raise HTTPException(status_code=400, detail="That user is already authorized.")
 
-    return UserOut(**new_user.model_dump())
-
-
-@router.put("/user/{email}/authorize", response_model=UserOut)
-def authorize_user(
-    email: str,
-    auth_request: AuthorizationRequest,
-    session: Session = Depends(get_connection),  # noqa: B008
-) -> UserOut:
-    user_controller = UserController(session)
-    user = user_controller.update_user(email, auth_request)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return UserOut(**user.model_dump())
-
-
-@router.post("/token", response_model=AccessToken)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),  # noqa: B008
-    session: Session = Depends(get_connection),  # noqa: B008
-) -> AccessToken:
-    user_controller = UserController(session)
-    access_token = user_controller.login(form_data.username, form_data.password)
-
-    if not access_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return access_token
-
-
-@router.post("/logout", response_model=dict)
-def logout():
-    return {"message": "Logout successful"}
+    existing_user.authorized = True
+    db.add(existing_user)
+    db.commit()
+    db.refresh(existing_user)
+    return existing_user
