@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Optional, Union
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,7 +27,7 @@ class PdfFileController:
         response.raise_for_status()
         return response.content
 
-    def _parse_anchor_tags(self, text: str) -> List[Union[BeautifulSoup, dict]]:
+    def _parse_anchor_tags(self, text: str) -> list[BeautifulSoup | dict]:
         soup = BeautifulSoup(text, "html.parser")
         return soup.find_all("a", href=True)
 
@@ -59,7 +58,7 @@ class PdfFileController:
                 anchor["href"]
                 for anchor in anchor_tags
                 if anchor["href"].endswith(".pdf")
-                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT
+                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT  # type: ignore
             )
 
         for url in pdf_urls:
@@ -72,13 +71,13 @@ class PdfFileController:
 
         return "PDFs downloaded successfully"
 
-    def list_available_files(self, turf: AvailableLocations) -> List[str]:
+    def list_available_files(self, turf: AvailableLocations) -> list[str]:
         pdf_dir = Path(f"files/{turf.value}")
         pdf_files = list(pdf_dir.glob("*.pdf"))
 
         return [file.name for file in pdf_files]
 
-    def retrieve_file(self, turf: AvailableLocations, filename: str) -> Optional[Path]:
+    def retrieve_file(self, turf: AvailableLocations, filename: str) -> Path | None:
         pdf_dir = Path(f"files/{turf.value}/{filename}")
         if not pdf_dir.exists():
             return None
