@@ -13,3 +13,4 @@ class User(SQLModel, table=True):
     hashed_password: str = Field(
         description="User's hashed password for authentication"
     )
+    name: str = Field(description="User's full name")

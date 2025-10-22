@@ -30,6 +30,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_connection)) -> UserO
         raise HTTPException(status_code=400, detail="That user does not exists.")
     return UserOut(
         email=existing_user.email,
+        name=existing_user.name,
         authorized=existing_user.authorized,
     )
 
@@ -41,11 +42,11 @@ def register_user(payload: UserCreatePayload, db: Session = Depends(get_connecti
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_pw = hash_password(payload.password)
-    user = User(email=payload.email, hashed_password=hashed_pw)
+    user = User(email=payload.email, name=payload.name, hashed_password=hashed_pw)
     db.add(user)
     db.commit()
     db.refresh(user)
-    return UserOut(email=user.email, authorized=user.authorized)
+    return UserOut(email=user.email, name=user.name, authorized=user.authorized)
 
 
 @router.post("/login", response_model=AccessToken)
