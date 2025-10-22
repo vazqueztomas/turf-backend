@@ -118,7 +118,7 @@ def _clean_text(x: str) -> str:
     return re.sub(r"\s{2,}", " ", x).strip()
 
 
-def extract_horses_from_pdf(pdf_path: str) -> set[dict]:
+def extract_horses_from_pdf(pdf_path: str) -> list[dict]:
     """
     Extrae filas de caballo desde el PDF usando heurísticas.
     Devuelve lista de dicts con: page, line_index, ultimas, num, nombre, peso, jockey, padre_madre, entrenador, raw_rest
@@ -261,4 +261,4 @@ def extract_horses_from_pdf(pdf_path: str) -> set[dict]:
                         "raw_rest": rest,
                     })
 
-    return set(results)
+    return results
