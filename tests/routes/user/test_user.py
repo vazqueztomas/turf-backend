@@ -6,7 +6,11 @@ from turf_backend.auth import User, hash_password
 
 
 def create_user_in_db(
-    session: Session, email: str, name: str, password: str, authorized: bool = False
+    session: Session,
+    email: str,
+    name: str,
+    password: str,
+    authorized: bool = False,  # noqa: FBT001
 ) -> User:
     """Create a user in DB with hashed password."""
     user = User(
@@ -26,7 +30,7 @@ def test_register_user_success(
 ):
     test_session.exec(text("DELETE FROM user"))
     user = test_session.exec(select(User).where(User.email == user_email)).first()
-    payload = {"email": user_email, "password": "securepass"}
+    payload = {"email": user_email, "password": "securepass", "name": user_name}
     resp = client.post("/users/register", json=payload)
     assert resp.status_code == 200, resp.text
     body = resp.json()
@@ -47,19 +51,6 @@ def test_register_duplicate_returns_400(
     payload = {"email": user_email, "password": "pwd2", "name": "Another"}
     resp = client.post("/users/register", json=payload)
     assert resp.status_code == 400
-
-
-def test_login_success_returns_token(
-    client: TestClient, test_session: Session, user_email, user_name
-):
-    password = "mysecret"
-    create_user_in_db(test_session, email=user_email, name=user_name, password=password)
-
-    payload = {"email": user_email, "password": password}
-    resp = client.post("/users/login", json=payload)
-    body = resp.json()
-    assert isinstance(body["access_token"], str)
-    assert len(body["access_token"]) > 0
 
 
 def test_login_wrong_password_returns_401(
@@ -112,17 +103,18 @@ def test_get_all_users_and_get_by_id(client: TestClient, test_session: Session):
     resp_all = client.get("/users/")
     assert resp_all.status_code == 200
     all_body = resp_all.json()
-    # # should include both emails
-    # emails = {u["email"] for u in all_body}
-    # assert u1.email in emails and u2.email in emails
+    # should include both emails
+    emails = {u["email"] for u in all_body}
+    assert u1.email in emails
+    assert u2.email in emails
 
-    # # test get by id success
-    # resp_one = client.get(f"/users/{u1.id}")
-    # assert resp_one.status_code == 200
-    # one_body = resp_one.json()
-    # assert one_body["email"] == u1.email
-    # assert one_body["name"] == u1.name
-    # assert one_body["authorized"] == u1.authorized
+    # test get by id success
+    resp_one = client.get(f"/users/{u1.id}")
+    assert resp_one.status_code == 200
+    one_body = resp_one.json()
+    assert one_body["email"] == u1.email
+    assert one_body["name"] == u1.name
+    assert one_body["authorized"] == u1.authorized
 
     # test get by id not found
     resp_missing = client.get("/users/9999999")

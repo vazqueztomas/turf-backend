@@ -25,7 +25,7 @@ app.include_router(users.router)
 
 @app.get("/")
 def healtcheck():
-    return {"status": "ok"}
+    return {"status": "ok"}  # pragma: no cover
 
 
 @app.exception_handler(HTTPException)

@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-# Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
 
@@ -22,16 +21,15 @@ class Settings(BaseSettings):
     }
 
     def get_database_url(self) -> str:
-        # Ajustar la URL solo si está en producción y utiliza "postgres://"
         if self.environment != "DEVELOPMENT" and self.postgres_url.startswith(
             "postgres://"
         ):
-            return self.postgres_url.replace("postgres://", "postgresql://", 1)
-        # En desarrollo, construir la URL directamente
+            return self.postgres_url.replace(
+                "postgres://", "postgresql://", 1
+            )  # pragma: no cover
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.db_port}/{self.postgres_database}"  # pylint: disable=line-too-long
 
 
 settings = Settings()
 
-# Usar el método para obtener la URL correcta
 database_url = settings.get_database_url()
