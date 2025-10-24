@@ -6,10 +6,7 @@ from turf_backend.routes import horses, pdf_file, users
 
 app = FastAPI(redoc_url="/swagger")
 
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",  # Agregar este origen adicional
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

@@ -25,7 +25,7 @@ def test_engine():
     return engine
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_session(test_engine):
     """Session independiente por test"""
     with Session(test_engine) as session:
@@ -35,7 +35,7 @@ def test_session(test_engine):
 # -----------------------------
 # CLIENTE FASTAPI
 # -----------------------------
-@pytest.fixture()
+@pytest.fixture
 def client(test_session: Session):
     """FastAPI TestClient usando la misma sesión que los tests"""
 
@@ -61,17 +61,17 @@ def _clean_users_table(test_session: Session):
 # -----------------------------
 # USUARIOS DE TEST
 # -----------------------------
-@pytest.fixture()
+@pytest.fixture
 def user_email() -> str:
     return "testuser@test.com"
 
 
-@pytest.fixture()
+@pytest.fixture
 def user_name() -> str:
     return "Test User"
 
 
-@pytest.fixture()
+@pytest.fixture
 def fake_user(user_email, user_name) -> User:
     """Usuario falso no persistido"""
     return User(
