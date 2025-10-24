@@ -13,6 +13,24 @@ REGEX_PDF_PALERMO = (
     r"^(Premio:|Récord|APUESTA|APUESTAS|Bono Especial|POZOS|^\d+ª Carrera|^Premio)"
 )
 
+# --- Regex y helpers ---
+MAIN_LINE_RE = re.compile(
+    r"(?P<ultimas>(?:\d+[A-Z0-9]{0,2}\s+){0,6})\s*"
+    r"(?P<num>\d{1,2})\s+"
+    r"(?P<name>[A-ZÁÉÍÓÚÑ0-9\'\.\s\-]+?)\s+"
+    r"(?P<peso>\d{1,2})",
+    re.UNICODE,
+)
+PARENTS_RE = re.compile(
+    r"(?P<sire>[\w\(\)\'\.\s]+?)-(?P<mother>[\w\(\)\'\.\s]+)", re.UNICODE
+)
+CODE_CLEAN_RE = re.compile(r"\b\d+\s*[A-Z]?\b")
+
+RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
+DISTANCE_RE = re.compile(r"\(?\b(\d{3,4})\s*m(?:etros)?\)?", re.IGNORECASE)
+HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:Hs\.?|hs\.?)?", re.IGNORECASE)
+PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”\']?(.*?)[\"”\']?(?:\s|$)", re.IGNORECASE)
+
 
 # TODO(Mati): Download PDFs from this other location
 # https://hipodromosanisidro.com/programas/
