@@ -9,6 +9,10 @@ from bs4 import BeautifulSoup
 from turf_backend.models.turf import AvailableLocations
 from turf_backend.utils.date import extract_date
 
+REGEX_PDF_PALERMO = (
+    r"^(Premio:|Récord|APUESTA|APUESTAS|Bono Especial|POZOS|^\d+ª Carrera|^Premio)"
+)
+
 
 # TODO(Mati): Download PDFs from this other location
 # https://hipodromosanisidro.com/programas/
@@ -118,7 +122,7 @@ def _clean_text(x: str) -> str:
     return re.sub(r"\s{2,}", " ", x).strip()
 
 
-def extract_horses_from_pdf(pdf_path: str) -> list[dict]:
+def extract_horses_from_pdf(pdf_path: str):
     """
     Extrae filas de caballo desde el PDF usando heurísticas.
     Devuelve lista de dicts con: page, line_index, ultimas, num, nombre, peso, jockey, padre_madre, entrenador, raw_rest
@@ -151,7 +155,7 @@ def extract_horses_from_pdf(pdf_path: str) -> list[dict]:
                         continue
                     # stop conditions: comienzo de otra sección
                     if re.match(
-                        r"^(Premio:|Récord|APUESTA|APUESTAS|Bono Especial|POZOS|^\d+ª Carrera|^Premio)",
+                        REGEX_PDF_PALERMO,
                         ln,
                     ):
                         break
@@ -260,5 +264,4 @@ def extract_horses_from_pdf(pdf_path: str) -> list[dict]:
                         "entrenador": entrenador,
                         "raw_rest": rest,
                     })
-
     return results
