@@ -7,6 +7,7 @@ from turf_backend.auth import (
     AccessToken,
     User,
     UserCreatePayload,
+    UserLogin,
     UserOut,
     create_access_token,
     hash_password,
@@ -50,7 +51,7 @@ def register_user(payload: UserCreatePayload, db: Session = Depends(get_connecti
 
 
 @router.post("/login", response_model=AccessToken)
-def login_user(payload: UserCreatePayload, db: Session = Depends(get_connection)):
+def login_user(payload: UserLogin, db: Session = Depends(get_connection)):
     user = db.exec(select(User).where(User.email == payload.email)).first()
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(

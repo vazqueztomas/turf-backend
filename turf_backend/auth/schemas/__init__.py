@@ -1,3 +1,3 @@
-from .user import AccessToken, UserCreatePayload, UserOut
+from .user import AccessToken, UserCreatePayload, UserLogin, UserOut
 
-__all__ = ["AccessToken", "UserCreatePayload", "UserOut"]
+__all__ = ["AccessToken", "UserCreatePayload", "UserLogin", "UserOut"]
