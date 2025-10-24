@@ -59,7 +59,7 @@ async def upload_pdf(
     if not file.filename:
         raise HTTPException(status_code=400, detail="Se requiere un archivo PDF")
 
-    # Guardamos temporalmente
+    # Guardar PDF temporalmente
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
@@ -76,8 +76,19 @@ async def upload_pdf(
             "inserted": 0,
         }
 
-    inserted = 0
+    # --- NUEVO: usamos un set para evitar duplicados ---
+    seen = set()
+    unique_rows = []
+
     for r in rows:
+        # Definimos la clave única del caballo:
+        key = (r.get("nombre"), r.get("numero"), r.get("page"))
+        if key not in seen:
+            seen.add(key)
+            unique_rows.append(r)
+
+    inserted = 0
+    for r in unique_rows:
         try:
             h = Horse(
                 numero=r.get("num") or r.get("numero"),
@@ -95,7 +106,11 @@ async def upload_pdf(
             inserted += 1
         except Exception:
             logger.exception("Error guardando fila en DB")
+
     session.commit()
+
     return {
-        "message": f"Se intentaron insertar {len(rows)} filas. Insertadas: {inserted}"
+        "message": f"Se intentaron insertar {len(rows)} filas. "
+        f"Filtradas: {len(unique_rows)} únicas. "
+        f"Insertadas: {inserted}"
     }
