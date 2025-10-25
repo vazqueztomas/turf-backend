@@ -1,36 +1,42 @@
 # Excluir archivos y directorios innecesarios
-*.pyc
-__pycache__/
+
+pyproject.toml
+_.pyc
+**pycache**/
 .pytest_cache/
 .ruff_cache/
 coverage-report.xml
 coverage.xml
 .coverage
-*.pyo
-*.pyd
-*.pdb
-*.egg-info/
-*.egg
-*.log
-*.sqlite3
-*.db
-*.DS_Store
+_.pyo
+_.pyd
+_.pdb
+_.egg-info/
+_.egg
+_.log
+_.sqlite3
+_.db
+_.DS_Store
 tests/
 docs/
 .env
-*.pdf
+\*.pdf
 
 # Excluir directorios de configuración de IDE
+
 .vscode/
 .idea/
 
 # Excluir archivos de configuración de CI/CD
+
 .github/
 .gitlab-ci.yml
 
 # Excluir archivos de configuración de Docker
+
 Dockerfile
 docker-compose.yml
 
 # Excluir archivos de configuración de Vercel
+
 .vercel/
