@@ -1,6 +1,12 @@
 # Excluir archivos y directorios innecesarios
 
+files/
+playground/
+tests/
 pyproject.toml
+test.db
+.env.sample
+.env
 _.pyc
 **pycache**/
 .pytest_cache/
