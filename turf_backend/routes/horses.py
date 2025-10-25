@@ -25,7 +25,7 @@ logger.setLevel(logging.INFO)
 RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
 DISTANCE_RE = re.compile(r"\(?\b(\d{3,4})\s*m(?:etros)?\)?", re.IGNORECASE)
 HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:Hs\.?|hs\.?)?", re.IGNORECASE)
-PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?(.*?)[\"”']?(?:\s|$)", re.IGNORECASE)
+PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”'\-]+)", re.IGNORECASE)
 STOP_SECTION_RE = re.compile(
     r"^(Récord|APUESTA|APUESTAS|Bono Especial|POZOS|^Premio|^\d+ª Carrera|^POZOS)",
     re.IGNORECASE,

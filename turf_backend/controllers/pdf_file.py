@@ -29,7 +29,7 @@ CODE_CLEAN_RE = re.compile(r"\b\d+\s*[A-Z]?\b")
 RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
 DISTANCE_RE = re.compile(r"\(?\b(\d{3,4})\s*m(?:etros)?\)?", re.IGNORECASE)
 HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:Hs\.?|hs\.?)?", re.IGNORECASE)
-PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”\']?(.*?)[\"”\']?(?:\s|$)", re.IGNORECASE)
+PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”'\-]+)", re.IGNORECASE)
 
 
 # TODO(Mati): Download PDFs from this other location
