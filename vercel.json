@@ -1,14 +1,17 @@
 {
-    "builds": [
-      {
-        "src": "turf_backend/main.py",
-        "use": "@vercel/python"
+  "builds": [
+    {
+      "src": "turf_backend/main.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": ["turf_backend/**"]
       }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "turf_backend/main.py"
-      }
-    ]
-  }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "turf_backend/main.py"
+    }
+  ]
+}
