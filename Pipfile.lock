@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e9b0515a6aaa7a38859b183b94496a42af84785bcb31f48163ebee6066d95496"
+            "sha256": "32b3f62cd92d107e285c7f44079d37139144386c14008e39648c7a4de323e804"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -97,6 +97,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==4.3.0"
+        },
+        "beautifulsoup4": {
+            "hashes": [
+                "sha256:2a98ab9f944a11acee9cc848508ec28d9228abfd522ef0fad6a02a72e0ded69e",
+                "sha256:5ef6fa3a8cbece8488d66985560f97ed091e22bbc4e9c2338508a9d5de6d4515"
+            ],
+            "index": "pypi",
+            "markers": "python_full_version >= '3.7.0'",
+            "version": "==4.14.2"
         },
         "certifi": {
             "hashes": [
@@ -1294,6 +1303,14 @@
             "markers": "python_version >= '3.7'",
             "version": "==1.3.1"
         },
+        "soupsieve": {
+            "hashes": [
+                "sha256:0cc76456a30e20f5d7f2e14a98a4ae2ee4e5abdc7c5ea0aafe795f344bc7984c",
+                "sha256:e2dd4a40a628cb5f28f6d4b0db8800b8f581b65bb380b97de22ba5ca8d72572f"
+            ],
+            "markers": "python_version >= '3.9'",
+            "version": "==2.8"
+        },
         "sqlalchemy": {
             "hashes": [
                 "sha256:0765e318ee9179b3718c4fd7ba35c434f4dd20332fbc6857a5e8df17719c24d7",
@@ -1387,7 +1404,7 @@
                 "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466",
                 "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"
             ],
-            "markers": "python_version < '3.11'",
+            "markers": "python_version >= '3.9'",
             "version": "==4.15.0"
         },
         "typing-inspection": {
@@ -2425,7 +2442,7 @@
                 "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466",
                 "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"
             ],
-            "markers": "python_version < '3.11'",
+            "markers": "python_version >= '3.9'",
             "version": "==4.15.0"
         },
         "virtualenv": {
