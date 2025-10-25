@@ -4,6 +4,9 @@ test.db
 .vscode/
 .idea/
 
+playground/
+files
+
 # Vagrant
 .vagrant/
 
