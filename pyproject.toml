@@ -1,6 +1,4 @@
-[build-system]
-requires = ["setuptools"]
-
+=
 [project]
 name = "turf-backend"
 requires-python = ">= 3.12"
