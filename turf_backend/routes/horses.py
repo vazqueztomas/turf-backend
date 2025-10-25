@@ -194,7 +194,7 @@ async def upload_and_save(
                 numero=r["num"],
                 nombre=r.get("nombre"),
                 distancia=r.get("distancia"),
-                fecha=datetime.now(),
+                fecha=r.get("hora"),
                 hipodromo="Palermo",
             )
             session.add(race_obj)
