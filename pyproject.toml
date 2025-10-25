@@ -1,4 +1,3 @@
-=
 [project]
 name = "turf-backend"
 requires-python = ">= 3.12"
