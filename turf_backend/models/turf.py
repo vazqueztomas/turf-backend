@@ -38,7 +38,7 @@ class Race(SQLModel, table=True):
     numero: int | None = Field(default=None, index=True)
     nombre: str | None = Field(default=None)
     distancia: int | None = Field(default=None)
-    fecha: datetime | None = Field(default_factory=datetime.utcnow)
+    fecha: str | None = Field(default_factory=None)
     hipodromo: str | None = Field(default="Palermo")
 
     # relación inversa con Horse
