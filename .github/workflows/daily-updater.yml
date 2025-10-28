@@ -1,0 +1,14 @@
+name: Daily Turf Update
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # todos los días a las 6 AM UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger FastAPI endpoint
+        run: |
+          curl -X POST "https://turf-backend-theta.vercel.app/turf/daily-update"
