@@ -1,3 +1,4 @@
+# type: ignore [circular]
 import logging
 import tempfile
 
@@ -5,9 +6,10 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from sqlmodel import Session
 
-from turf_backend.controllers.pdf_file import PdfFileController, extract_horses_from_pdf
+from turf_backend.controllers.pdf_file import PdfFileController
 from turf_backend.database import get_connection
 from turf_backend.models.turf import AvailableLocations, Horse
+from turf_backend.services.pdf_processing import extract_horses_from_pdf
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -59,7 +61,6 @@ async def upload_pdf(
     if not file.filename:
         raise HTTPException(status_code=400, detail="Se requiere un archivo PDF")
 
-    # Guardar PDF temporalmente
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
@@ -68,7 +69,7 @@ async def upload_pdf(
         rows = extract_horses_from_pdf(tmp_path)
     except Exception as e:
         logger.exception("Error extrayendo PDF")
-        raise HTTPException(status_code=500, detail=f"Error extrayendo PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Error extrayendo PDF: {e}")  # noqa: B904
 
     if not rows:
         return {

@@ -5,6 +5,5 @@ from .database import database
 __all__ = [
     "database",
     "pdf_file",
-    "pdf_file",
     "settings",
 ]

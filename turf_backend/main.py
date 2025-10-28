@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from turf_backend.routes import horses, pdf_file, temp_pdf_downloader, users
+from turf_backend.routes import horses, pdfs, temp_pdf_downloader, users
 
 app = FastAPI(redoc_url="/swagger")
 
@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(pdf_file.router)
+app.include_router(pdfs.router)
 app.include_router(users.router)
 app.include_router(horses.router)
 app.include_router(temp_pdf_downloader.router)

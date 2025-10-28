@@ -1,74 +1,61 @@
-import tempfile
+import logging
 
 import requests
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
 
-from turf_backend.controllers.pdf_file import extract_horses_from_pdf
+logger = logging.getLogger()
 
 
-class TempPdfDownloader:
+class DailyPdfUpdater:
     BASE_URL = "https://www.palermo.com.ar/es/turf/programa-oficial"
     PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
 
     def _make_request(self, url: str) -> str:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.text
+        resp = requests.get(url, timeout=20)
+        resp.raise_for_status()
+        return resp.text
 
     def _download_pdf(self, url: str) -> bytes:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.content
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        return resp.content
 
-    def _parse_anchor_tags(self, text: str) -> list[BeautifulSoup | dict]:
-        soup = BeautifulSoup(text, "html.parser")
+    def _parse_anchor_tags(self, html: str):
+        soup = BeautifulSoup(html, "html.parser")
         return soup.find_all("a", href=True)
 
-    def download_and_extract(self):
-        """Descarga los PDFs de Palermo, los guarda temporalmente y extrae los datos."""
+    def fetch_latest_pdfs(self) -> list[bytes]:
         try:
             response_text = self._make_request(self.BASE_URL)
-            anchor_tags = self._parse_anchor_tags(response_text)
+            anchors = self._parse_anchor_tags(response_text)
 
             pdf_sources = [
-                anchor["href"]
-                for anchor in anchor_tags
-                if "programa-oficial-reunion" in anchor["href"]
+                a["href"] for a in anchors if "programa-oficial-reunion" in a["href"]
             ]
-
             if not pdf_sources:
-                return {"message": "No PDFs sources found", "results": []}
+                logger.info("No se encontraron fuentes de PDFs.")
+                return []
 
             pdf_urls = []
             for source in pdf_sources:
-                response_text = self._make_request(source)  # type: ignore[arg-type]
-                anchor_tags = self._parse_anchor_tags(response_text)
+                html = self._make_request(source)  # type: ignore
+                anchors = self._parse_anchor_tags(html)
                 pdf_urls.extend(
-                    anchor["href"]
-                    for anchor in anchor_tags
-                    if anchor["href"].endswith(".pdf")  # type: ignore
-                    and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT  # type: ignore
+                    a["href"]
+                    for a in anchors
+                    if a["href"].endswith(".pdf")  # type: ignore
+                    and a.text.strip() == self.PDF_DOWNLOAD_TEXT
                 )
 
-            if not pdf_urls:
-                return {"message": "No PDF URLs found", "results": []}
-
-            all_results = []
+            pdf_bytes = []
             for url in pdf_urls:
-                pdf_content = self._download_pdf(url)
+                logger.info(f"Descargando PDF: {url}")  # noqa: G004
+                pdf_bytes.append(self._download_pdf(url))
 
-                with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as tmp:
-                    tmp.write(pdf_content)
-                    tmp.flush()
-
-                    horses_data = extract_horses_from_pdf(tmp.name)
-                    all_results.extend(horses_data)
-
-            return {
-                "message": f"Se procesaron {len(pdf_urls)} PDFs correctamente.",
-                "results": all_results,
-            }
-
+            logger.info(f"Total PDFs descargados: {len(pdf_bytes)}")  # noqa: G004
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error procesando PDFs: {e}")
+            msg_error = f"Error descargando PDFs: {e}"
+            logger.exception(msg_error)
+            raise HTTPException(status_code=500, detail=msg_error)  # noqa: B904
+        return pdf_bytes
