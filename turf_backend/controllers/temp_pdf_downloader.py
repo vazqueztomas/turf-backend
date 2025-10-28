@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from fastapi import HTTPException
 
 from turf_backend.controllers.pdf_file import extract_horses_from_pdf
-from turf_backend.utils.date import extract_date
 
 
 class TempPdfDownloader:
@@ -48,7 +47,7 @@ class TempPdfDownloader:
                 pdf_urls.extend(
                     anchor["href"]
                     for anchor in anchor_tags
-                    if anchor["href"].endswith(".pdf")
+                    if anchor["href"].endswith(".pdf")  # type: ignore
                     and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT  # type: ignore
                 )
 
@@ -59,15 +58,10 @@ class TempPdfDownloader:
             for url in pdf_urls:
                 pdf_content = self._download_pdf(url)
 
-                # Creamos un archivo temporal
                 with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as tmp:
                     tmp.write(pdf_content)
                     tmp.flush()
 
-                    # Extraemos la fecha desde el contenido del PDF
-                    pdf_filename = extract_date(pdf_content)
-
-                    # Procesamos el PDF directamente desde el archivo temporal
                     horses_data = extract_horses_from_pdf(tmp.name)
                     all_results.extend(horses_data)
 
