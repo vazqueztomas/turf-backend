@@ -215,6 +215,9 @@ def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
                 if not m:
                     continue
 
+                if not check_is_valid_race_header(lines, i, line_joined):
+                    continue
+
                 num = int(m.group("num"))
 
                 dist = None
@@ -230,9 +233,38 @@ def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
                 if pm := PREMIO_RE.search(line_joined):
                     nombre = pm.group(1).strip()
                 else:
-                    next_line = lines[i + 1] if i + 1 < len(lines) else ""
-                    if "Premio" in next_line:
-                        nombre = re.sub(r"(?i)Premio[:\s]+", "", next_line).strip()
+                    lookahead_limit = 5
+                    for j in range(1, lookahead_limit + 1):
+                        if i + j >= len(lines):
+                            break
+                        candidate = lines[i + j]
+                        if RACE_HEADER_RE.search(candidate):  # No cruzar otra carrera
+                            break
+                        if "Premio" in candidate or "premio" in candidate.lower():
+                            nombre = re.sub(r"(?i)Premio[:\s]+", "", candidate).strip()
+                            break
+                        if not nombre and DISTANCE_RE.search(candidate):
+                            before_dist = candidate.split(
+                                str(DISTANCE_RE.search(candidate).group(1))
+                            )[0]
+                            if before_dist.strip():
+                                nombre = before_dist.strip().strip("-—:")
+                                break
+
+                    if not nombre and DISTANCE_RE.search(line_joined):
+                        dist_match = DISTANCE_RE.search(line_joined)
+                        before_dist = line_joined[: dist_match.start()].strip()
+                        # Evitar incluir "Carrera" o número
+                        before_dist = re.sub(
+                            r"(?i)\b\d{1,2}\s*(?:ª|º)?\s*Carrera\b", "", before_dist
+                        ).strip()
+                        if before_dist:
+                            nombre = before_dist.strip("-—: ")
+
+                    if not nombre:
+                        quoted = re.search(r"[\"“](.*?)[\"”]", line_joined)
+                        if quoted:
+                            nombre = quoted.group(1).strip()
 
                 races.append({
                     "page": page_idx,
@@ -283,3 +315,24 @@ def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
         "races": races,
         "summary": summary,
     }
+
+
+def check_is_valid_race_header(lines: list[str], idx: int, joined: str) -> bool:
+    window_text = joined
+    max_ahead = 3
+    for j in range(1, max_ahead + 1):
+        if idx + j < len(lines):
+            window_text += " " + lines[idx + j]
+
+    if (
+        DISTANCE_RE.search(window_text)
+        or HOUR_RE.search(window_text)
+        or PREMIO_RE.search(window_text)
+    ):
+        return True
+
+    for j in range(6):
+        if idx + j < len(lines) and "Caballeriza" in lines[idx + j]:
+            return True
+
+    return False
