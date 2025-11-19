@@ -1,3 +1,4 @@
+# pylint: disable=too-many-locals, duplicate-code
 import logging
 import tempfile
 
@@ -11,7 +12,7 @@ from turf_backend.services.pdf_processing import extract_races_and_assign
 logger = logging.getLogger("turf")
 logger.setLevel(logging.INFO)
 
-router = APIRouter(prefix="/turf", tags=["Turf"])
+router = APIRouter(prefix="/san-isidro", tags=["San Isidro"])
 
 
 @router.get("/horses/", response_model=list[Horse])
@@ -105,7 +106,9 @@ async def upload_and_save(
     session.commit()
 
     return {
-        "message": f"✅ Se cargaron {len(races)} carreras. Nuevas: {inserted_races}. Caballos insertados: {inserted_horses}",
+        "message": f"✅ Se cargaron {len(races)} carreras. "
+        f"Nuevas: {inserted_races}. "
+        f"Caballos insertados: {inserted_horses} ",
         "summary": extraction["summary"],
     }
 

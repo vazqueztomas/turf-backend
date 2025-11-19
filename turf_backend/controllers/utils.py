@@ -1,3 +1,4 @@
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
 import logging
 import tempfile
 
@@ -6,7 +7,7 @@ from sqlmodel import select
 from turf_backend.controllers.temp_pdf_downloader import DailyPdfUpdater
 from turf_backend.database import get_connection
 from turf_backend.models.turf import Horse, Race
-from turf_backend.routes.horses import extract_races_and_assign
+from turf_backend.routes.san_isidro import extract_races_and_assign
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -86,7 +87,8 @@ def process_pdfs_and_update_db():
         session.commit()
         msg_info = (
             f"✅ Actualización completada: {inserted_races} carreras nuevas, "
-            f"{inserted_horses} caballos nuevos, {total_horses_extracted} extraídos en total."
+            f"{inserted_horses} caballos nuevos, {total_horses_extracted} "
+            f"extraídos en total."
         )
         logger.info(msg_info)
     except Exception as e:
@@ -94,7 +96,7 @@ def process_pdfs_and_update_db():
         logger.exception(msg_error)
         session.rollback()
     finally:
-        try:
+        try:  # noqa
             session_gen.close()
-        except Exception:
+        except Exception:  # noqa
             pass

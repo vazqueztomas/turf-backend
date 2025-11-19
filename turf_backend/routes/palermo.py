@@ -1,4 +1,5 @@
 # type: ignore [circular]
+# pylint: disable=too-many-locals
 import logging
 import tempfile
 
@@ -14,7 +15,7 @@ from turf_backend.services.pdf_processing import extract_horses_from_pdf
 logger = logging.getLogger("uvicorn.error")
 
 
-router = APIRouter(prefix="/files")
+router = APIRouter(prefix="/palermo", tags=["Palermo"])
 
 
 @router.get("/download")
