@@ -68,3 +68,21 @@ def check_is_valid_race_header(lines: list[str], idx: int, joined: str) -> bool:
 
 def clean_text(x: str) -> str:
     return re.sub(r"\s{2,}", " ", x).strip()
+
+
+def extract_jockey_trainer_and_parents(rest) -> tuple[str, str, str]:
+    nm = PARENTS_RE.search(rest)
+    if nm:
+        # madre puede llevar más tokens; tomamos el match
+        sire = nm.group("sire").strip()
+        mother = nm.group("mother").strip()
+        jockey = strip_unused_tokens_between_jockey_and_parents(rest)
+        padre_madre = (
+            (f"{clean_text(sire)} - {clean_text(mother)}").replace(jockey, "").strip()
+        )
+        entrenador = rest.replace(jockey, "").replace(padre_madre, "").strip()
+    else:
+        jockey = ""
+        padre_madre = ""
+        entrenador = ""
+    return jockey, padre_madre, entrenador  # type: ignore
