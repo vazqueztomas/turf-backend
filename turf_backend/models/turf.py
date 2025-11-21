@@ -28,7 +28,8 @@ class Horse(SQLModel, table=True):
     page: int | None = Field(default=None)
     line_index: int | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.now)
-
+    caballeriza: str | None = Field(default=None)
+    races: list["Race"] = Relationship(back_populates="horses")
     race: Optional["Race"] = Relationship(back_populates="horses")
 
 
@@ -40,6 +41,7 @@ class Race(SQLModel, table=True):
     distancia: int | None = Field(default=None)
     fecha: str | None = Field(default_factory=None)
     hipodromo: str | None = Field(default="Palermo")
+    hour: str | None = Field(default=None)
 
     # relación inversa con Horse
     horses: list["Horse"] = Relationship(back_populates="race")

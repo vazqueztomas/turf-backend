@@ -15,7 +15,7 @@ HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:Hs\.?|hs\.?)?", re.IGNORECASE)
 PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”'\-]+)", re.IGNORECASE)
 
 MAIN_LINE_RE = re.compile(
-    r"(?P<ultimas>(?:\d+[A-Z0-9]{0,2}\s+){1,6})\s*"
+    r"(?P<ultimas>(?:\d+[A-Z0-9]{0,2}\s+){1,6}|DEBUTA\s+)"
     r"(?P<num>\d{1,2})\s+"
     r"(?P<name>[A-ZÁÉÍÓÚÑ0-9\'\.\s\-]+?)\s+"
     r"(?P<peso>\d{1,2})",
@@ -86,3 +86,12 @@ def extract_jockey_trainer_and_parents(rest) -> tuple[str, str, str]:
         padre_madre = ""
         entrenador = ""
     return jockey, padre_madre, entrenador  # type: ignore
+
+
+def extract_races_number_name_and_weight(main_line):
+    raw_ultimas = main_line.group("ultimas")
+    ultimas = "DEBUTA" if "DEBUTA" in raw_ultimas else clean_text(raw_ultimas)
+    numero = main_line.group("num").strip()
+    nombre = clean_text(main_line.group("name"))
+    peso = main_line.group("peso").strip()
+    return ultimas, numero, nombre, peso

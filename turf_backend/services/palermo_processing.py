@@ -15,9 +15,9 @@ from turf_backend.services.helper import (
     RACE_HEADER_RE,
     REGEX_PDF_PALERMO,
     check_is_valid_race_header,
-    clean_text,
     extract_header_idx,
     extract_jockey_trainer_and_parents,
+    extract_races_number_name_and_weight,
 )
 
 logger = logging.getLogger("turf")
@@ -47,13 +47,19 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                     ):
                         break
 
+                    # detectamos caballeriza y la extraemos
+                    if re.match(r"^[A-ZÁÉÍÓÚÑ0-9\s\(\)\.\º\-]+$", ln):
+                        tokens = ln.split()
+                        if len(tokens) <= 3:
+                            caballeriza = ln.strip()
+                            continue
+
                     main_line = MAIN_LINE_RE.search(ln)
                     if not main_line:
                         continue
-                    ultimas = clean_text(main_line.group("ultimas"))
-                    num = main_line.group("num").strip()
-                    nombre = clean_text(main_line.group("name"))
-                    peso = main_line.group("peso").strip()
+                    ultimas, numero, nombre, peso = (
+                        extract_races_number_name_and_weight(main_line)
+                    )
 
                     # resto del texto a la derecha del grupo 'peso'
                     rest = ln[main_line.end("peso") :].strip()
@@ -67,13 +73,14 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                             page=page_idx,
                             line_index=li,
                             ultimas=ultimas,
-                            numero=num,
+                            numero=numero,
                             nombre=nombre,
                             peso=int(peso) if peso.isdigit() else None,
                             jockey=jockey,
                             padre_madre=padre_madre,
                             entrenador=entrenador,
                             raw_rest=rest,
+                            caballeriza=caballeriza,  # type: ignore
                         )
                     )
     return results

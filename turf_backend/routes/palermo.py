@@ -78,7 +78,6 @@ async def upload_pdf(
             "inserted": 0,
         }
 
-    # --- NUEVO: usamos un set para evitar duplicados ---
     seen = set()
     unique_rows = []
 
@@ -103,6 +102,7 @@ async def upload_pdf(
                 page=r.page,
                 line_index=r.line_index,
                 raw_rest=r.raw_rest,
+                caballeriza=r.caballeriza,
             )
             session.add(h)
             inserted += 1
