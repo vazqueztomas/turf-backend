@@ -43,3 +43,13 @@ fastapi dev main.py
 
 This application is deployed on Render -> https://turf-backend-h6nc.onrender.com
 You can check the documentation of the application (we are using Swagger) here: https://turf-backend-h6nc.onrender.com/docs
+
+## TODO
+
+- Reduce too complex functions extract_horses_from_pdf and extract_races_from_pdf
+- Add extract_horses_from_pdf tests
+- add extract_races_and_assign tests
+- reduce nested blocks
+- improve funtions and modularization
+- improve races upsert logic
+- check if we can add multiples horses [resolved, multiple horses cannot be added due to constraints issues]
