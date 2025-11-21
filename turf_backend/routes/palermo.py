@@ -9,8 +9,11 @@ from sqlmodel import Session
 
 from turf_backend.controllers.pdf_file import PdfFileController
 from turf_backend.database import get_connection
-from turf_backend.models.turf import AvailableLocations, Horse
-from turf_backend.services.palermo_processing import extract_horses_from_pdf
+from turf_backend.models.turf import AvailableLocations
+from turf_backend.services.palermo_processing import (
+    parse_pdf_horses,
+)
+from turf_backend.services.races import assign_horses_to_race, create_race
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -67,52 +70,24 @@ async def upload_pdf(
         tmp_path = tmp.name
 
     try:
-        rows = extract_horses_from_pdf(tmp_path)
+        horses = parse_pdf_horses(tmp_path)
     except Exception as e:
         logger.exception("Error extrayendo PDF")
         raise HTTPException(status_code=500, detail=f"Error extrayendo PDF: {e}")  # noqa: B904
 
-    if not rows:
+    if not horses:
         return {
             "message": "No se encontró información de caballos en el PDF.",
             "inserted": 0,
         }
 
-    seen = set()
-    unique_rows = []
+    race = create_race(
+        session,
+        hipodromo="Palermo",
+        fecha=None,
+        numero=None,
+    )
 
-    for r in rows:
-        # Definimos la clave única del caballo:
-        key = (r.nombre, r.numero, r.page)
-        if key not in seen:
-            seen.add(key)
-            unique_rows.append(r)
+    inserted = assign_horses_to_race(session, race.race_id, horses)
 
-    inserted = 0
-    for r in unique_rows:
-        try:
-            h = Horse(
-                numero=r.numero,
-                nombre=r.nombre,
-                peso=r.peso,
-                jockey=r.jockey,
-                ultimas=r.ultimas,
-                padre_madre=r.padre_madre,
-                entrenador=r.entrenador,
-                page=r.page,
-                line_index=r.line_index,
-                raw_rest=r.raw_rest,
-                caballeriza=r.caballeriza,
-            )
-            session.add(h)
-            inserted += 1
-        except Exception:
-            logger.exception("Error guardando fila en DB")
-
-    session.commit()
-
-    return {
-        "message": f"Se intentaron insertar {len(rows)} filas. "
-        f"Filtradas: {len(unique_rows)} únicas. "
-        f"Insertadas: {inserted}"
-    }
+    return {f"Insertadas: {inserted}"}

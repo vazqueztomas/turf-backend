@@ -1,5 +1,6 @@
 # pylint: disable=duplicate-code
 import logging
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select, text
@@ -45,7 +46,7 @@ def get_all_races(
 
 
 @router.get("/races/{race_id}")
-def get_race_detail(race_id: int, session: Session = Depends(get_connection)):
+def get_race_detail(race_id: UUID, session: Session = Depends(get_connection)):
     race = session.get(Race, race_id)
     if not race:
         raise HTTPException(status_code=404, detail="Carrera no encontrada")

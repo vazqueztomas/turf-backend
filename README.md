@@ -53,3 +53,4 @@ You can check the documentation of the application (we are using Swagger) here: 
 - improve funtions and modularization
 - improve races upsert logic
 - check if we can add multiples horses [resolved, multiple horses cannot be added due to constraints issues]
+- add detection for the new race in race_id assignment

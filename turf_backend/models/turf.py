@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
+from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
@@ -16,7 +17,7 @@ class Horse(SQLModel, table=True):
     )
 
     id: int | None = Field(default=None, primary_key=True)
-    race_id: int | None = Field(default=None, foreign_key="races.id")
+    race_id: UUID = Field(default=uuid4(), foreign_key="races.race_id")
     numero: str | None = Field(default=None, index=True)
     nombre: str | None = Field(default=None)
     peso: int | None = Field(default=None)
@@ -35,7 +36,7 @@ class Horse(SQLModel, table=True):
 
 class Race(SQLModel, table=True):
     __tablename__ = "races"
-    id: int | None = Field(default=None, primary_key=True)
+    race_id: UUID = Field(default=uuid4(), primary_key=True, index=True)
     numero: int | None = Field(default=None, index=True)
     nombre: str | None = Field(default=None)
     distancia: int | None = Field(default=None)

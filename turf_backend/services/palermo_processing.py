@@ -1,6 +1,7 @@
 import contextlib
 import logging
 import re
+import uuid
 from datetime import datetime
 from typing import Any
 
@@ -13,7 +14,6 @@ from turf_backend.services.helper import (
     MAIN_LINE_RE,
     PREMIO_RE,
     RACE_HEADER_RE,
-    REGEX_PDF_PALERMO,
     check_is_valid_race_header,
     extract_header_idx,
     extract_jockey_trainer_and_parents,
@@ -24,8 +24,24 @@ logger = logging.getLogger("turf")
 logger.setLevel(logging.INFO)
 
 
+def parse_pdf_horses(pdf_path: str) -> list[Horse]:
+    rows = extract_horses_from_pdf(pdf_path)
+
+    seen = set()
+    unique_rows = []
+
+    for r in rows:
+        key = (r.nombre, r.numero, r.page)
+        if key not in seen:
+            seen.add(key)
+            unique_rows.append(r)
+
+    return unique_rows
+
+
 def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
     results = []
+    race_id = uuid.uuid4()
     with pdfplumber.open(pdf_path) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
@@ -40,12 +56,11 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                     ln = lines[li].rstrip()
                     if not ln.strip():
                         continue
-                    # stop conditions: comienzo de otra sección
-                    if re.match(
-                        REGEX_PDF_PALERMO,
-                        ln,
-                    ):
-                        break
+
+                    if detect_new_race(ln):
+                        race_id = uuid.uuid4()
+                        caballeriza = None
+                        continue
 
                     # detectamos caballeriza y la extraemos
                     if re.match(r"^[A-ZÁÉÍÓÚÑ0-9\s\(\)\.\º\-]+$", ln):
@@ -61,6 +76,9 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                         extract_races_number_name_and_weight(main_line)
                     )
 
+                    if detect_new_race(numero):
+                        race_id = uuid.uuid4()
+
                     # resto del texto a la derecha del grupo 'peso'
                     rest = ln[main_line.end("peso") :].strip()
 
@@ -70,6 +88,7 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
 
                     results.append(
                         Horse(
+                            race_id=race_id,
                             page=page_idx,
                             line_index=li,
                             ultimas=ultimas,
@@ -84,6 +103,13 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                         )
                     )
     return results
+
+
+def detect_new_race(horse_number: str) -> bool:
+    """
+    Detecta si una línea marca el inicio de una nueva carrera.
+    """
+    return horse_number == 1
 
 
 def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
