@@ -10,7 +10,7 @@ from sqlmodel import Session
 from turf_backend.controllers.pdf_file import PdfFileController
 from turf_backend.database import get_connection
 from turf_backend.models.turf import AvailableLocations, Horse
-from turf_backend.services.pdf_processing import extract_horses_from_pdf
+from turf_backend.services.palermo_processing import extract_horses_from_pdf
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -84,7 +84,7 @@ async def upload_pdf(
 
     for r in rows:
         # Definimos la clave única del caballo:
-        key = (r.get("nombre"), r.get("numero"), r.get("page"))
+        key = (r.nombre, r.numero, r.page)
         if key not in seen:
             seen.add(key)
             unique_rows.append(r)
@@ -93,16 +93,16 @@ async def upload_pdf(
     for r in unique_rows:
         try:
             h = Horse(
-                numero=r.get("num") or r.get("numero"),
-                nombre=r.get("nombre"),
-                peso=r.get("peso"),
-                jockey=r.get("jockey"),
-                ultimas=r.get("ultimas"),
-                padre_madre=r.get("padre_madre"),
-                entrenador=r.get("entrenador"),
-                page=r.get("page"),
-                line_index=r.get("line_index"),
-                raw_rest=r.get("raw_rest"),
+                numero=r.numero,
+                nombre=r.nombre,
+                peso=r.peso,
+                jockey=r.jockey,
+                ultimas=r.ultimas,
+                padre_madre=r.padre_madre,
+                entrenador=r.entrenador,
+                page=r.page,
+                line_index=r.line_index,
+                raw_rest=r.raw_rest,
             )
             session.add(h)
             inserted += 1

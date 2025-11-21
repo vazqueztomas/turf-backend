@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 from turf_backend.database import get_connection
 from turf_backend.models.turf import Horse, Race
-from turf_backend.services.pdf_processing import extract_races_and_assign
+from turf_backend.services.palermo_processing import extract_races_and_assign
 
 logger = logging.getLogger("turf")
 logger.setLevel(logging.INFO)
@@ -33,19 +33,19 @@ async def upload_and_save(
     inserted_races = 0
     inserted_horses = 0
 
-    for r in races:
+    for race in races:
         q = select(Race).where(
-            Race.numero == r["num"],
+            Race.numero == race["num"],
             Race.hipodromo == "Palermo",
         )
         race_obj = session.exec(q).first()
 
         if not race_obj:
             race_obj = Race(
-                numero=r["num"],
-                nombre=r.get("nombre"),
-                distancia=r.get("distancia"),
-                fecha=r.get("hora"),
+                numero=race["num"],
+                nombre=race.get("nombre"),
+                distancia=race.get("distancia"),
+                fecha=race.get("hora"),
                 hipodromo="Palermo",
             )
             session.add(race_obj)
@@ -53,12 +53,12 @@ async def upload_and_save(
             session.refresh(race_obj)
             inserted_races += 1
 
-        for h in r.get("horses", []):
+        for horse in race.horses:
             exists = session.exec(
                 select(Horse).where(
-                    Horse.nombre == h.get("nombre"),
-                    Horse.numero == h.get("num"),
-                    Horse.page == h.get("page"),
+                    Horse.nombre == horse.nombre,
+                    Horse.numero == horse.num,
+                    Horse.page == horse.page,
                 )
             ).first()
 
@@ -67,16 +67,16 @@ async def upload_and_save(
 
             horse_obj = Horse(
                 race_id=race_obj.id,
-                numero=h.get("num"),
-                nombre=h.get("nombre"),
-                peso=h.get("peso"),
-                jockey=h.get("jockey"),
-                ultimas=h.get("ultimas"),
-                padre_madre=h.get("padre_madre"),
-                entrenador=h.get("entrenador"),
-                raw_rest=h.get("raw_rest"),
-                page=h.get("page"),
-                line_index=h.get("line_index"),
+                numero=horse.num,
+                nombre=horse.nombre,
+                peso=horse.peso,
+                jockey=horse.jockey,
+                ultimas=horse.ultimas,
+                padre_madre=horse.padre_madre,
+                entrenador=horse.entrenador,
+                raw_rest=horse.raw_rest,
+                page=horse.page,
+                line_index=horse.line_index,
             )
 
             session.add(horse_obj)
