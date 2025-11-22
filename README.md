@@ -46,11 +46,13 @@ You can check the documentation of the application (we are using Swagger) here: 
 
 ## TODO
 
-- Reduce too complex functions extract_horses_from_pdf and extract_races_from_pdf
+- Reduce too complex functions extract_horses_from_pdf and extract_races_and_assing
 - Add extract_horses_from_pdf tests
 - add extract_races_and_assign tests
 - reduce nested blocks
 - improve funtions and modularization
-- improve races upsert logic
-- check if we can add multiples horses [resolved, multiple horses cannot be added due to constraints issues]
-- add detection for the new race in race_id assignment
+- ~~improve races upsert logic~~
+- ~~check if we can add multiples horses [resolved, multiple horses cannot be added due to constraints issues]~~
+- ~~add detection for the new race in race_id assignment~~
+- improve san isidro parser to detect more horses
+- improve san isidro parser to charge things to database
