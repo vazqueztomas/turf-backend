@@ -91,7 +91,7 @@ def extract_jockey_trainer_and_parents(rest) -> tuple[str, str, str]:
 def extract_races_number_name_and_weight(main_line):
     raw_ultimas = main_line.group("ultimas")
     ultimas = "DEBUTA" if "DEBUTA" in raw_ultimas else clean_text(raw_ultimas)
-    numero = main_line.group("num").strip()
+    numero = int(main_line.group("num").strip())
     nombre = clean_text(main_line.group("name"))
     peso = main_line.group("peso").strip()
     return ultimas, numero, nombre, peso

@@ -1,4 +1,4 @@
-# services/race_service.py
+from collections import defaultdict
 from uuid import UUID
 
 from sqlmodel import Session
@@ -32,3 +32,25 @@ def assign_horses_to_race(session: Session, race_id: UUID, horses: list[Horse]) 
 
     session.commit()
     return inserted
+
+
+def insert_and_create_races(session, horses):
+    races_dict = defaultdict(list)
+    for h in horses:
+        races_dict[h.race_id].append(h)
+
+    total_inserted = 0
+
+    for rid, horses_group in races_dict.items():
+        race = create_race(
+            session,
+            hipodromo="Palermo",
+            fecha=None,
+            numero=None,
+        )
+
+        race.race_id = rid
+        session.flush()
+
+        total_inserted += assign_horses_to_race(session, rid, horses_group)
+    return total_inserted

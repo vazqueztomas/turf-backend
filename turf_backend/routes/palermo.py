@@ -13,7 +13,7 @@ from turf_backend.models.turf import AvailableLocations
 from turf_backend.services.palermo_processing import (
     parse_pdf_horses,
 )
-from turf_backend.services.races import assign_horses_to_race, create_race
+from turf_backend.services.races import insert_and_create_races
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -81,13 +81,7 @@ async def upload_pdf(
             "inserted": 0,
         }
 
-    race = create_race(
-        session,
-        hipodromo="Palermo",
-        fecha=None,
-        numero=None,
-    )
+    total_inserted = insert_and_create_races(session, horses)
 
-    inserted = assign_horses_to_race(session, race.race_id, horses)
+    return {f"Insertadas: {total_inserted}"}
 
-    return {f"Insertadas: {inserted}"}

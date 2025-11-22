@@ -41,7 +41,9 @@ def parse_pdf_horses(pdf_path: str) -> list[Horse]:
 
 def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
     results = []
+    last_race_number = 0
     race_id = uuid.uuid4()
+
     with pdfplumber.open(pdf_path) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
@@ -57,11 +59,6 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                     if not ln.strip():
                         continue
 
-                    if detect_new_race(ln):
-                        race_id = uuid.uuid4()
-                        caballeriza = None
-                        continue
-
                     # detectamos caballeriza y la extraemos
                     if re.match(r"^[A-ZÁÉÍÓÚÑ0-9\s\(\)\.\º\-]+$", ln):
                         tokens = ln.split()
@@ -72,14 +69,15 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                     main_line = MAIN_LINE_RE.search(ln)
                     if not main_line:
                         continue
+
                     ultimas, numero, nombre, peso = (
                         extract_races_number_name_and_weight(main_line)
                     )
 
-                    if detect_new_race(numero):
+                    if int(numero) < last_race_number:
                         race_id = uuid.uuid4()
 
-                    # resto del texto a la derecha del grupo 'peso'
+                    last_race_number = int(numero)
                     rest = ln[main_line.end("peso") :].strip()
 
                     jockey, padre_madre, entrenador = (
@@ -92,7 +90,7 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                             page=page_idx,
                             line_index=li,
                             ultimas=ultimas,
-                            numero=numero,
+                            numero=str(numero),
                             nombre=nombre,
                             peso=int(peso) if peso.isdigit() else None,
                             jockey=jockey,
@@ -103,13 +101,6 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
                         )
                     )
     return results
-
-
-def detect_new_race(horse_number: str) -> bool:
-    """
-    Detecta si una línea marca el inicio de una nueva carrera.
-    """
-    return horse_number == 1
 
 
 def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
