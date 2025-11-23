@@ -89,15 +89,7 @@ def insert_and_create_races(session, horses, pdf_path: str):
 
     for rid, horses_group in races_dict.items():
         race_info = extract_race_information(pdf_path, horses_group)
-        race = create_race(
-            session,
-            hipodromo="Palermo",
-            fecha=None,
-            numero=None,
-            nombre=race_info["nombre"],
-            distancia=race_info["distancia"],
-            hour=race_info["hora"],
-        )
+        race = create_race(session, hipodromo="San Isidro", fecha=None, numero=None)
 
         race.race_id = rid
         session.flush()
