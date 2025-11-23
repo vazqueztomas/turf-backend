@@ -81,7 +81,6 @@ async def upload_pdf(
             "inserted": 0,
         }
 
-    total_inserted = insert_and_create_races(session, horses)
+    total_inserted = insert_and_create_races(session, horses, tmp_path)
 
     return {f"Insertadas: {total_inserted}"}
-

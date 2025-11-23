@@ -95,3 +95,28 @@ def extract_races_number_name_and_weight(main_line):
     nombre = clean_text(main_line.group("name"))
     peso = main_line.group("peso").strip()
     return ultimas, numero, nombre, peso
+
+
+def extract_race_name(lines, i: int, line: str):
+    nombre = None
+    if pm := PREMIO_RE.search(line):
+        nombre = pm.group(1).strip()
+    else:
+        lookahead_limit = 5
+        for j in range(1, lookahead_limit + 1):
+            if i + j >= len(lines):
+                break
+            candidate = lines[i + j]
+            if RACE_HEADER_RE.search(candidate):  # No cruzar otra carrera
+                break
+            if "Premio" in candidate or "premio" in candidate.lower():
+                nombre = re.sub(r"(?i)Premio[:\s]+", "", candidate).strip()
+                break
+            if not nombre and DISTANCE_RE.search(candidate):
+                before_dist = candidate.split(
+                    str(DISTANCE_RE.search(candidate).group(1))  # type: ignore
+                )[0]
+                if before_dist.strip():
+                    nombre = before_dist.strip().strip("-—:")
+                    break
+    return nombre
