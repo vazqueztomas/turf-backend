@@ -8,7 +8,7 @@ from typing import Any
 import pdfplumber
 
 from turf_backend.models.turf import Horse, Race
-from turf_backend.services.helper import (
+from turf_backend.services.palermo.helper import (
     DISTANCE_RE,
     HOUR_RE,
     MAIN_LINE_RE,
@@ -103,8 +103,8 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
     return results
 
 
-# remover esto de aca, no lo vamos a usar mas 
-# porque tenemos otra manera de realizar la insercion 
+# remover esto de aca, no lo vamos a usar mas
+# porque tenemos otra manera de realizar la insercion
 # de nuevas carreras
 def extract_races_and_assign(pdf_path: str) -> dict[str, Any]:
     horses = extract_horses_from_pdf(pdf_path)

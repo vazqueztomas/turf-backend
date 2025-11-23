@@ -6,7 +6,7 @@ import pdfplumber
 from sqlmodel import Session
 
 from turf_backend.models.turf import Horse, Race
-from turf_backend.services.helper import (
+from turf_backend.services.palermo.helper import (
     DISTANCE_RE,
     HOUR_RE,
     RACE_HEADER_RE,

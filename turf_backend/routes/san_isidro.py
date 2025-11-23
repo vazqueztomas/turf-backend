@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 from turf_backend.database import get_connection
 from turf_backend.models.turf import Horse, Race
-from turf_backend.services.palermo_processing import extract_races_and_assign
+from turf_backend.services.palermo.palermo_processing import extract_races_and_assign
 
 logger = logging.getLogger("turf")
 logger.setLevel(logging.INFO)

@@ -10,10 +10,10 @@ from sqlmodel import Session
 from turf_backend.controllers.pdf_file import PdfFileController
 from turf_backend.database import get_connection
 from turf_backend.models.turf import AvailableLocations
-from turf_backend.services.palermo_processing import (
+from turf_backend.services.palermo.palermo_processing import (
     parse_pdf_horses,
 )
-from turf_backend.services.races import insert_and_create_races
+from turf_backend.services.palermo.races import insert_and_create_races
 
 logger = logging.getLogger("uvicorn.error")
 
