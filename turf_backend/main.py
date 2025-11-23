@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from turf_backend.routes import general, palermo, san_isidro, temp_pdf_downloader, users
+from turf_backend.routes import general, palermo, san_isidro, users
 
 app = FastAPI(redoc_url="/swagger")
 
@@ -20,7 +20,6 @@ app.include_router(general.router)
 app.include_router(palermo.router)
 app.include_router(san_isidro.router)
 app.include_router(users.router)
-app.include_router(temp_pdf_downloader.router)
 
 
 @app.get("/")

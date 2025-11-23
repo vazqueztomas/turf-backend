@@ -3,11 +3,11 @@ import logging
 import tempfile
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from turf_backend.database import get_connection
-from turf_backend.models.turf import Horse, Race
-from turf_backend.services.palermo.palermo_processing import extract_races_and_assign
+from turf_backend.services.san_isidro.races import insert_and_create_races
+from turf_backend.services.san_isidro.sanisidro_processing import parse_pdf_horses
 
 logger = logging.getLogger("turf")
 logger.setLevel(logging.INFO)
@@ -27,66 +27,20 @@ async def upload_and_save(
         tmp.write(await file.read())
         tmp_path = tmp.name
 
-    extraction = extract_races_and_assign(tmp_path)
-    races = extraction["races"]
+    try:
+        horses = parse_pdf_horses(tmp_path)
+    except Exception as e:
+        logger.exception("Error extrayendo PDF")
+        raise HTTPException(status_code=500, detail=f"Error extrayendo PDF: {e}")  # noqa: B904
 
-    inserted_races = 0
-    inserted_horses = 0
+    if not horses:
+        return {
+            "message": "No se encontró información de caballos en el PDF.",
+            "inserted": 0,
+        }
 
-    for race in races:
-        q = select(Race).where(
-            Race.numero == race["num"],
-            Race.hipodromo == "Palermo",
-        )
-        race_obj = session.exec(q).first()
-
-        if not race_obj:
-            race_obj = Race(
-                numero=race["num"],
-                nombre=race.get("nombre"),
-                distancia=race.get("distancia"),
-                fecha=race.get("hora"),
-                hipodromo="Palermo",
-            )
-            session.add(race_obj)
-            session.commit()
-            session.refresh(race_obj)
-            inserted_races += 1
-
-        for horse in race.horses:
-            exists = session.exec(
-                select(Horse).where(
-                    Horse.nombre == horse.nombre,
-                    Horse.numero == horse.num,
-                    Horse.page == horse.page,
-                )
-            ).first()
-
-            if exists:
-                continue
-
-            horse_obj = Horse(
-                race_id=race_obj.id,
-                numero=horse.num,
-                nombre=horse.nombre,
-                peso=horse.peso,
-                jockey=horse.jockey,
-                ultimas=horse.ultimas,
-                padre_madre=horse.padre_madre,
-                entrenador=horse.entrenador,
-                raw_rest=horse.raw_rest,
-                page=horse.page,
-                line_index=horse.line_index,
-            )
-
-            session.add(horse_obj)
-            inserted_horses += 1
+    total_inserted = insert_and_create_races(session, horses, tmp_path)
 
     session.commit()
 
-    return {
-        "message": f"✅ Se cargaron {len(races)} carreras. "
-        f"Nuevas: {inserted_races}. "
-        f"Caballos insertados: {inserted_horses} ",
-        "summary": extraction["summary"],
-    }
+    return {f"Insertadas: {total_inserted}"}
