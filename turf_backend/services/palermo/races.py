@@ -1,4 +1,6 @@
+# pylint: disable=too-many-locals
 from collections import defaultdict
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -9,8 +11,9 @@ from turf_backend.models.turf import Horse, Race
 from turf_backend.services.palermo.helper import (
     DISTANCE_RE,
     HOUR_RE,
+    NOMBRE_CON_DISTANCIA_RE,
+    PREMIO_RE,
     RACE_HEADER_RE,
-    extract_race_name,
 )
 
 
@@ -42,42 +45,82 @@ def assign_horses_to_race(session: Session, race_id: UUID, horses: list[Horse]) 
     return inserted
 
 
+# Encuentra la línea donde está la carrera
+def find_race_header(lines, start_index):
+    for idx in range(start_index, -1, -1):
+        if RACE_HEADER_RE.search(lines[idx]):
+            return idx
+    return None
+
+
+def extract_race_block(lines, header_index, radius=4):
+    start = max(0, header_index - radius)
+    end = min(len(lines), header_index + radius + 1)
+    return lines[start:end]
+
+
 def extract_race_information(
     pdf_path: str, horses_group: list[Horse]
-) -> dict[str, Any]:
-    horses = horses_group[0]
+) -> dict[str, Any] | None:
+    horse = horses_group[0]
 
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[horses.page]  # type: ignore
+        page = pdf.pages[horse.page]  # type: ignore
         lines = (page.extract_text() or "").split("\n")
 
-        # Buscamos hacia arriba desde su line_index
-        for i in range(horses.line_index - 1, -1, -1):  # pyright: ignore[reportOptionalOperand]
-            line = lines[i]
+    # 1. Encontrar encabezado ("1ª Carrera", "2º Carrera", etc.)
+    header_idx = None
+    for idx in range(horse.line_index, -1, -1):  # type: ignore
+        if RACE_HEADER_RE.search(lines[idx]):
+            header_idx = idx
+            break
 
-            m = RACE_HEADER_RE.search(line)
-            if not m:
-                continue
+    if header_idx is None:
+        return None
 
-            # ✔ Distancia
-            dist = None
-            if dm := DISTANCE_RE.search(line):
-                dist = int(dm.group(1))
+    # 2. Tomar bloque de líneas alrededor del encabezado
+    block = extract_race_block(lines, header_idx, radius=4)
 
-            # ✔ Hora
-            hora = None
-            if hm := HOUR_RE.search(line):
-                hora = hm.group(1)
+    nombre, hora, distancia = extract_name_distance_hour(block)
 
-            nombre = extract_race_name(lines, i, line)
+    # Si no hay nombre, usar fallback
+    if not nombre:
+        header = RACE_HEADER_RE.search(lines[header_idx])
+        numero = header.group("num")
+        nombre = f"Carrera {numero}"
 
-            return {
-                "nombre": nombre,
-                "distancia": dist,
-                "hora": hora,
-                "hipodromo": "Palermo",
-            }
-    return None
+    return {
+        "nombre": nombre,
+        "distancia": distancia,
+        "hora": hora,
+        "hipodromo": "Palermo",
+    }
+
+
+def extract_name_distance_hour(block):
+    nombre = None
+    hora = None
+    distancia = None
+
+    for line in block:
+        # ✔ Extraer nombre
+        m = PREMIO_RE.match(line.strip())
+        if m and not nombre:
+            nombre = m.group(1).strip()
+
+        m2 = NOMBRE_CON_DISTANCIA_RE.match(line.strip())
+        if m2 and not nombre:
+            nombre = m2.group("nombre").strip()
+        # ✔ Extraer hora
+        hm = HOUR_RE.search(line)
+        if hm and not hora:
+            hora = hm.group(1)
+
+        # ✔ Extraer distancia
+        dm = DISTANCE_RE.search(line)
+        if dm and not distancia:
+            distancia = int(dm.group(1))
+    return nombre, hora, distancia
 
 
 def insert_and_create_races(session, horses, pdf_path: str):
@@ -92,7 +135,7 @@ def insert_and_create_races(session, horses, pdf_path: str):
         race = create_race(
             session,
             hipodromo="Palermo",
-            fecha=None,
+            fecha=datetime.now().strftime("%d/%m/%Y"),
             numero=None,
             nombre=race_info["nombre"],
             distancia=race_info["distancia"],

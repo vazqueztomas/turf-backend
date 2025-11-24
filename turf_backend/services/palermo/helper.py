@@ -12,8 +12,13 @@ CODE_CLEAN_RE = re.compile(r"\b\d+\s*[A-Z]?\b")
 RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
 DISTANCE_RE = re.compile(r"\(?\b(\d{3,4})\s*m(?:etros)?\)?", re.IGNORECASE)
 HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:Hs\.?|hs\.?)?", re.IGNORECASE)
-PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”'\-]+)", re.IGNORECASE)
-
+PREMIO_RE = re.compile(
+    r"(?i)^premio\s*:\s*(.+?)(?:\s*-\s*\d{3,4}\s*(?:m|mts|metros)\.?)?$"
+)
+NOMBRE_CON_DISTANCIA_RE = re.compile(
+    r"^(?P<nombre>.+?)\s*-\s*\d{3,4}\s*(?:m|mts|metros)\.?",
+    re.IGNORECASE,
+)
 MAIN_LINE_RE = re.compile(
     r"(?P<ultimas>(?:\d+[A-Z0-9]{0,2}\s+){1,6}|DEBUTA\s+)"
     r"(?P<num>\d{1,2})\s+"
@@ -97,26 +102,28 @@ def extract_races_number_name_and_weight(main_line):
     return ultimas, numero, nombre, peso
 
 
-def extract_race_name(lines, i: int, line: str):
-    nombre = None
-    if pm := PREMIO_RE.search(line):
-        nombre = pm.group(1).strip()
-    else:
-        lookahead_limit = 5
-        for j in range(1, lookahead_limit + 1):
-            if i + j >= len(lines):
-                break
-            candidate = lines[i + j]
-            if RACE_HEADER_RE.search(candidate):  # No cruzar otra carrera
-                break
-            if "Premio" in candidate or "premio" in candidate.lower():
-                nombre = re.sub(r"(?i)Premio[:\s]+", "", candidate).strip()
-                break
-            if not nombre and DISTANCE_RE.search(candidate):
-                before_dist = candidate.split(
-                    str(DISTANCE_RE.search(candidate).group(1))  # type: ignore
-                )[0]
-                if before_dist.strip():
-                    nombre = before_dist.strip().strip("-—:")
-                    break
-    return nombre
+def extract_race_name(lines, start_index: int, current_line: str):
+    """
+    Devuelve el nombre de la carrera buscando en la línea actual o las siguientes.
+    Acepta formato 'Premio: NOMBRE (ALT) - 1200 metros'.
+    Ignora líneas como 'Premios: $ ...'
+    """
+
+    # 1) Intentar extraer el nombre directamente de la línea actual
+    m = PREMIO_RE.match(current_line.strip())
+    if m:
+        return m.group(1).strip()
+
+    # 2) Buscar hacia abajo hasta encontrar una línea válida
+    for offset in range(1, 15):
+        idx = start_index + offset
+        if idx >= len(lines):
+            break
+
+        candidate = lines[idx].strip()
+
+        m = PREMIO_RE.match(candidate)
+        if m:
+            return m.group(1).strip()
+
+    return None
