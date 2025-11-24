@@ -2,7 +2,10 @@ import re
 
 RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
 
-DISTANCE_RE = re.compile(r"\b(\d{3,4})\s*(?:m|metros)\b", re.IGNORECASE)
+DISTANCE_RE = re.compile(
+    r"\b(\d{3,4})\s*(?:m|mts|metros)\.?\b",
+    re.IGNORECASE,
+)
 HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:hs\.?|Hs\.?)?", re.IGNORECASE)
 PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”']+)", re.IGNORECASE)
 MAIN_LINE_RE = re.compile(
@@ -11,6 +14,12 @@ MAIN_LINE_RE = re.compile(
     r"(?P<name>[A-Za-zÁÉÍÓÚÑ0-9\'\.\s\-]+?)\s+"
     r"(?P<peso>\d{1,3}(?:\.\d+)?)",
     re.UNICODE,
+)
+RACE_NUMBER_LINE_RE = re.compile(r"^\s*(\d{1,2})(?:\s+(.*\S))?\s*$")
+
+PREMIO_LINE_RE = re.compile(r"(?i)^(premio|cl[aá]sico|gran premio|g\.?\s*p\.?)\b")
+PREMIO_EXTRACT_RE = re.compile(
+    r"(?i)^(?:premio|cl[aá]sico|gran premio|g\.?\s*p\.?)[:\s\-]*(.+)$"
 )
 
 

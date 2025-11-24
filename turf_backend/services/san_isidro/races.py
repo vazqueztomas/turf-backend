@@ -1,5 +1,5 @@
-import re
 from collections import defaultdict
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -10,34 +10,10 @@ from turf_backend.models.turf import Horse, Race
 from turf_backend.services.san_isidro.helper import (
     DISTANCE_RE,
     HOUR_RE,
-    PREMIO_RE,
-    RACE_HEADER_RE,
+    PREMIO_EXTRACT_RE,
+    PREMIO_LINE_RE,
+    RACE_NUMBER_LINE_RE,
 )
-
-
-def extract_race_name(lines, i: int, line: str):
-    nombre = None
-    if pm := PREMIO_RE.search(line):
-        nombre = pm.group(1).strip()
-    else:
-        lookahead_limit = 5
-        for j in range(1, lookahead_limit + 1):
-            if i + j >= len(lines):
-                break
-            candidate = lines[i + j]
-            if RACE_HEADER_RE.search(candidate):  # No cruzar otra carrera
-                break
-            if "Premio" in candidate or "premio" in candidate.lower():
-                nombre = re.sub(r"(?i)Premio[:\s]+", "", candidate).strip()
-                break
-            if not nombre and DISTANCE_RE.search(candidate):
-                before_dist = candidate.split(
-                    str(DISTANCE_RE.search(candidate).group(1))  # type: ignore
-                )[0]
-                if before_dist.strip():
-                    nombre = before_dist.strip().strip("-—:")
-                    break
-    return nombre
 
 
 def create_race(session: Session, **kwargs) -> Race:
@@ -68,42 +44,113 @@ def assign_horses_to_race(session: Session, race_id: UUID, horses: list[Horse]) 
     return inserted
 
 
-def extract_race_information(
-    pdf_path: str, horses_group: list[Horse]
-) -> dict[str, Any]:
-    horses = horses_group[0]
-
-    with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[horses.page]  # type: ignore
-        lines = (page.extract_text() or "").split("\n")
-
-        # Buscamos hacia arriba desde su line_index
-        for i in range(horses.line_index - 1, -1, -1):  # pyright: ignore[reportOptionalOperand]
-            line = lines[i]
-
-            m = RACE_HEADER_RE.search(line)
-            if not m:
-                continue
-
-            # ✔ Distancia
-            dist = None
-            if dm := DISTANCE_RE.search(line):
-                dist = int(dm.group(1))
-
-            # ✔ Hora
-            hora = None
-            if hm := HOUR_RE.search(line):
-                hora = hm.group(1)
-
-            nombre = extract_race_name(lines, i, line)
-
-            return {
-                "nombre": nombre,
-                "distancia": dist,
-                "hora": hora,
-                "hipodromo": "Palermo",
-            }
+def find_race_number_and_line_above(
+    lines: list[str], from_index: int
+) -> tuple[int, int, str | None] | None:
+    """
+    Search upward from from_index to find a line that contains a race number.
+    Returns tuple (race_number, line_index, inline_text) where inline_text is the rest of the line after the number (if any).
+    """
+    for idx in range(from_index, -1, -1):
+        candidate = lines[idx]
+        match = RACE_NUMBER_LINE_RE.match(candidate)
+        if match:
+            number = int(match.group(1))
+            inline_rest = match.group(2)  # may be None
+            return number, idx, inline_rest
     return None
+
+
+def find_hour_below(
+    lines: list[str], race_line_index: int, lookahead: int = 3
+) -> str | None:
+    for offset in range(1, lookahead + 1):
+        idx = race_line_index + offset
+        if idx >= len(lines):
+            break
+        candidate = lines[idx]
+        m = HOUR_RE.search(candidate)
+        if m:
+            return m.group(1)
+    return None
+
+
+def find_name_below_or_inline(
+    lines: list[str], race_line_index: int, inline_text: str | None, lookahead: int = 8
+) -> str | None:
+    """
+    Find the race name. Preference:
+      1) If inline_text is provided and looks like a Premio/... line, extract name from it.
+      2) Otherwise scan lines below for Premio/Clásico/... lines.
+      3) If none found, return None to allow fallback.
+    """
+    if inline_text:
+        inline = inline_text.strip()
+        m_inline = PREMIO_EXTRACT_RE.match(inline)
+        if m_inline and m_inline.group(1):
+            return m_inline.group(1).strip()
+        if inline.lower().startswith(("premio", "cl", "gran")):
+            return inline
+
+    for offset in range(1, lookahead + 1):
+        idx = race_line_index + offset
+        if idx >= len(lines):
+            break
+        candidate = lines[idx].strip()
+        if not candidate:
+            continue
+        if PREMIO_LINE_RE.match(candidate):
+            em = PREMIO_EXTRACT_RE.match(candidate)
+            if em and em.group(1):
+                return em.group(1).strip()
+            return candidate
+    return None
+
+
+def find_distance_below(
+    lines: list[str], race_line_index: int, lookahead: int = 20
+) -> str | None:
+    for offset in range(1, lookahead + 1):
+        idx = race_line_index + offset
+        if idx >= len(lines):
+            break
+        candidate = lines[idx]
+        dm = DISTANCE_RE.search(candidate)
+        if dm:
+            return dm.group(1)
+    return None
+
+
+def parse_race_at_line(lines, from_index: int) -> dict[str, Any] | None:
+    found = find_race_number_and_line_above(lines, from_index)
+    if not found:
+        return None
+    race_number, race_line_index, inline_text = found
+
+    hora = find_hour_below(lines, race_line_index)
+    nombre = (
+        find_name_below_or_inline(lines, race_line_index, inline_text)
+        or f"Carrera {race_number}"
+    )
+    distancia = find_distance_below(lines, race_line_index)
+
+    return {
+        "numero": race_number,
+        "nombre": nombre,
+        "hora": hora,
+        "distancia": distancia,
+        "hipodromo": "San Isidro",
+    }
+
+
+def extract_all_races_from_lines(lines: list[str]) -> list[dict[str, Any]]:
+    races = []
+    for idx, raw in enumerate(lines):
+        if RACE_NUMBER_LINE_RE.match(raw):
+            parsed = parse_race_at_line(lines, idx)
+            if parsed:
+                races.append(parsed)
+    return races
 
 
 def insert_and_create_races(session, horses, pdf_path: str):
@@ -113,18 +160,35 @@ def insert_and_create_races(session, horses, pdf_path: str):
 
     total_inserted = 0
 
-    for rid, horses_group in races_dict.items():
-        race_info = extract_race_information(pdf_path, horses_group)
-        race = create_race(
-            session,
-            hipodromo="San Isidro",
-            fecha=None,
-            hour=race_info["hora"],
-            nombre=race_info["nombre"],
-        )
+    with pdfplumber.open(pdf_path) as pdf:
+        for temporary_race_id, horses_group in races_dict.items():
+            first_horse = horses_group[0]
 
-        race.race_id = rid
-        session.flush()
+            page = pdf.pages[first_horse.page]
+            lines = (page.extract_text() or "").splitlines()
 
-        total_inserted += assign_horses_to_race(session, rid, horses_group)
+            race_info = parse_race_at_line(lines, first_horse.line_index)
+
+            if not race_info:
+                race_info = {
+                    "nombre": "Carrera",
+                    "distancia": None,
+                    "hora": None,
+                    "hipodromo": "San Isidro",
+                }
+            race = create_race(
+                session,
+                hipodromo="San Isidro",
+                fecha=datetime.now().strftime("%d/%m/%Y"),
+                hour=race_info["hora"],
+                nombre=race_info["nombre"],
+                distancia=race_info["distancia"],
+            )
+
+            race.race_id = temporary_race_id
+            session.flush()
+
+            total_inserted += assign_horses_to_race(
+                session, temporary_race_id, horses_group
+            )
     return total_inserted
