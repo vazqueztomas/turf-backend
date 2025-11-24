@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from typing import Any
 from uuid import UUID
@@ -9,9 +10,34 @@ from turf_backend.models.turf import Horse, Race
 from turf_backend.services.san_isidro.helper import (
     DISTANCE_RE,
     HOUR_RE,
+    PREMIO_RE,
     RACE_HEADER_RE,
-    extract_race_name,
 )
+
+
+def extract_race_name(lines, i: int, line: str):
+    nombre = None
+    if pm := PREMIO_RE.search(line):
+        nombre = pm.group(1).strip()
+    else:
+        lookahead_limit = 5
+        for j in range(1, lookahead_limit + 1):
+            if i + j >= len(lines):
+                break
+            candidate = lines[i + j]
+            if RACE_HEADER_RE.search(candidate):  # No cruzar otra carrera
+                break
+            if "Premio" in candidate or "premio" in candidate.lower():
+                nombre = re.sub(r"(?i)Premio[:\s]+", "", candidate).strip()
+                break
+            if not nombre and DISTANCE_RE.search(candidate):
+                before_dist = candidate.split(
+                    str(DISTANCE_RE.search(candidate).group(1))  # type: ignore
+                )[0]
+                if before_dist.strip():
+                    nombre = before_dist.strip().strip("-—:")
+                    break
+    return nombre
 
 
 def create_race(session: Session, **kwargs) -> Race:
@@ -89,7 +115,13 @@ def insert_and_create_races(session, horses, pdf_path: str):
 
     for rid, horses_group in races_dict.items():
         race_info = extract_race_information(pdf_path, horses_group)
-        race = create_race(session, hipodromo="San Isidro", fecha=None, numero=None)
+        race = create_race(
+            session,
+            hipodromo="San Isidro",
+            fecha=None,
+            hour=race_info["hora"],
+            nombre=race_info["nombre"],
+        )
 
         race.race_id = rid
         session.flush()
