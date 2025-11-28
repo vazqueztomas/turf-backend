@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     postgres_host: str = Field(..., json_schema_extra={"env": "POSTGRES_HOST"})
     db_port: int = Field(5432, json_schema_extra={"env": "DB_PORT"})
     postgres_url: str = Field(..., json_schema_extra={"env": "POSTGRES_URL_NO_SSL"})
-    openai_api_key: str = Field(..., json_schema_extra={"env": "OPENAI_API_KEY"})
 
     model_config = {
         "env_file": ".env",

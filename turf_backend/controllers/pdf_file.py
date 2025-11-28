@@ -43,6 +43,7 @@ class PdfFileController:
     # TODO(mati): Refactor this and try to make it more generic
     def download_files_from_external_sources(self) -> str:  # pylint: disable=too-many-locals
         url = "https://www.palermo.com.ar/es/turf/programa-oficial"
+        pdf_download_text = "Descargar VersiÃ³n PDF"
 
         response_text = self._make_request(url)
         anchor_tags = self._parse_anchor_tags(response_text)
@@ -63,7 +64,7 @@ class PdfFileController:
                 anchor["href"]
                 for anchor in anchor_tags
                 if anchor["href"].endswith(".pdf")  # type: ignore
-                and anchor.text.strip() == self.PDF_DOWNLOAD_TEXT  # type: ignore
+                and anchor.text.strip() == pdf_download_text  # type: ignore
             )
 
         for url in pdf_urls:
