@@ -18,6 +18,8 @@ logger.setLevel(logging.DEBUG)
 # TODO (TOTO): Sacar esto, solo se utiliza dentro del
 # router de los pdf ( no esta usandose actualmente)
 class PdfFileController:
+    PDF_DOWNLOAD_TEXT = "Descargar VersiÃ³n PDF"
+
     def __init__(self) -> None:
         self.save_dir = Path("files")
         self.save_dir.mkdir(parents=True, exist_ok=True)
