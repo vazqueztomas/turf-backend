@@ -35,6 +35,7 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
     results = []
     last_race_number = 0
     race_id = uuid.uuid4()
+    caballeriza = None
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_idx, page in enumerate(pdf.pages):
