@@ -5,9 +5,9 @@ from typing import Any
 from uuid import UUID
 
 import pdfplumber
-from sqlmodel import Session
+from sqlmodel import Session, select
 
-from turf_backend.models.turf import Horse, Race
+from turf_backend.models.turf import Horse, Race, RaceHorseLink
 from turf_backend.services.palermo.helper import (
     DISTANCE_RE,
     HOUR_RE,
@@ -30,16 +30,30 @@ def create_race(session: Session, **kwargs) -> Race:
 
 
 def assign_horses_to_race(session: Session, race_id: UUID, horses: list[Horse]) -> int:
-    """
-    Asigna un race_id a todos los caballos extraídos del PDF.
-    Inserta los caballos en la DB.
-    Devuelve cuántos se insertaron.
-    """
     inserted = 0
+
     for h in horses:
-        h.race_id = race_id
-        session.add(h)
-        inserted += 1
+        stmt = select(Horse).where(
+            Horse.nombre == h.nombre, Horse.numero == h.numero, Horse.page == h.page
+        )
+        existing = session.execute(stmt).scalar_one_or_none()
+
+        if not existing:
+            session.add(h)
+            session.flush()  # obtener h.id sin commit
+            horse_db = h
+            inserted += 1
+        else:
+            horse_db = existing
+
+        # Crear link a la race (si ya está linkeado no lo duplicamos)
+        link_stmt = select(RaceHorseLink).where(
+            RaceHorseLink.race_id == race_id, RaceHorseLink.horse_id == horse_db.id
+        )
+        link_exists = session.execute(link_stmt).scalar_one_or_none()
+
+        if not link_exists:
+            session.add(RaceHorseLink(race_id=race_id, horse_id=horse_db.id))  # type: ignore
 
     session.commit()
     return inserted
@@ -123,27 +137,28 @@ def extract_name_distance_hour(block):
     return nombre, hora, distancia
 
 
-def insert_and_create_races(session, horses, pdf_path: str):
-    races_dict = defaultdict(list)
-    for h in horses:
-        races_dict[h.race_id].append(h)
+def insert_and_create_races(session, horses, pdf_path: str) -> int:
+    races: dict[UUID, list[Horse]] = defaultdict(list)
+    for horse in horses:
+        races[horse.race_id].append(horse)
 
-    total_inserted = 0
+    inserted = 0
 
-    for rid, horses_group in races_dict.items():
-        race_info = extract_race_information(pdf_path, horses_group)
-        race = create_race(
-            session,
-            hipodromo="Palermo",
-            fecha=datetime.now().strftime("%d/%m/%Y"),
-            numero=None,
-            nombre=race_info["nombre"],
-            distancia=race_info["distancia"],
-            hour=race_info["hora"],
-        )
+    for race_id, group in races.items():
+        race = session.exec(select(Race).where(Race.race_id == race_id)).first()
+        if not race:
+            info = extract_race_information(pdf_path, group)
+            race = Race(
+                race_id=race_id,
+                nombre=info["nombre"],
+                distancia=info["distancia"],
+                hour=info["hora"],
+                hipodromo="Palermo",
+                fecha=datetime.now().strftime("%d/%m/%Y"),
+            )
+            session.add(race)
 
-        race.race_id = rid
         session.flush()
+        inserted += assign_horses_to_race(session, race_id, group)
 
-        total_inserted += assign_horses_to_race(session, rid, horses_group)
-    return total_inserted
+    return inserted

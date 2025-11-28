@@ -79,7 +79,6 @@ def extract_horses_from_pdf(pdf_path: str) -> list[Horse]:
 
                     results.append(
                         Horse(
-                            race_id=race_id,
                             page=page_idx,
                             line_index=li,
                             ultimas=ultimas,

@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
@@ -17,7 +16,6 @@ class Horse(SQLModel, table=True):
     )
 
     id: int | None = Field(default=None, primary_key=True)
-    race_id: UUID = Field(default=uuid4(), foreign_key="races.race_id")
     numero: str | None = Field(default=None, index=True)
     nombre: str | None = Field(default=None)
     peso: int | None = Field(default=None)
@@ -30,8 +28,8 @@ class Horse(SQLModel, table=True):
     line_index: int | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.now)
     caballeriza: str | None = Field(default=None)
-    races: list["Race"] = Relationship(back_populates="horses")
-    race: Optional["Race"] = Relationship(back_populates="horses")
+
+    race_links: list["RaceHorseLink"] = Relationship(back_populates="horse")
 
 
 class Race(SQLModel, table=True):
@@ -44,5 +42,14 @@ class Race(SQLModel, table=True):
     hipodromo: str | None = Field(default="Palermo")
     hour: str | None = Field(default=None)
 
-    # relación inversa con Horse
-    horses: list["Horse"] = Relationship(back_populates="race")
+    horse_links: list["RaceHorseLink"] = Relationship(back_populates="race")
+
+
+class RaceHorseLink(SQLModel, table=True):
+    __tablename__ = "race_horses"
+
+    race_id: UUID = Field(foreign_key="races.race_id", primary_key=True)
+    horse_id: int = Field(foreign_key="horses.id", primary_key=True)
+
+    race: "Race" = Relationship(back_populates="horse_links")
+    horse: "Horse" = Relationship(back_populates="race_links")
