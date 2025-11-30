@@ -1,3 +1,3 @@
-from .router import router as users_router
+from .router import router
 
-__all__ = ["users_router"]
+__all__ = ["router"]

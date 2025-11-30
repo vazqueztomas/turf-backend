@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from turf_backend.api import (
+from turf_backend.api.routes import (
     base_router,
     horses_router,
     palermo_router,
@@ -23,9 +23,9 @@ app.add_middleware(
 
 app.include_router(base_router)
 app.include_router(palermo_router)
-app.include_router(users_router)
 app.include_router(races_router)
 app.include_router(horses_router)
+app.include_router(users_router)
 
 
 @app.exception_handler(HTTPException)
