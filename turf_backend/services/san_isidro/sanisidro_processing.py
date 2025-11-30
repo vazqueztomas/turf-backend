@@ -3,7 +3,7 @@ import uuid
 
 import pdfplumber
 
-from turf_backend.models.turf import Horse
+from turf_backend.models import Horse
 from turf_backend.services.san_isidro.helper import (
     MAIN_LINE_RE,
     extract_jockey_trainer_and_parents,

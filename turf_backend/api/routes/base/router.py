@@ -17,8 +17,8 @@ def healtcheck() -> JSONResponse:
 
 @router.delete("/database/reset")
 def reset_database(session: DatabaseSession) -> JSONResponse:
-    session.exec(text("DELETE FROM horses;"))
-    session.exec(text("DELETE FROM races;"))
+    session.exec(text("DELETE FROM horse;"))
+    session.exec(text("DELETE FROM race;"))
     session.commit()
 
     return JSONResponse(

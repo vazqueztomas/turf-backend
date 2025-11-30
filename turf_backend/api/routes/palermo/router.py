@@ -21,7 +21,7 @@ def list_available_files(palermo_service: InjectedPalermoService) -> list[str]:
     return palermo_service.list_palermo_files()
 
 
-@router.post("/pdf/upload/")
+@router.post("/pdf/upload")
 async def upload_pdf(
     palermo_service: InjectedPalermoService,
     session: DatabaseSession,
@@ -49,7 +49,6 @@ async def upload_pdf(
 
     return JSONResponse(
         content={
-            "races_created": total_inserted,
-            "horses_inserted": len(horses),
+            "horses_inserted": total_inserted,
         }
     )

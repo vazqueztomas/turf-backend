@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from sqlmodel import Session, SQLModel, create_engine
 
+from turf_backend.models import Horse, Race, User  # noqa: F401
 from turf_backend.utils import Settings
 
 

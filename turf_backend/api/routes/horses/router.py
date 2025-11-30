@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from sqlmodel import select
 
 from turf_backend.api.dependencies import DatabaseSession
-from turf_backend.models.turf import Horse
+from turf_backend.models import Horse
 
 router = APIRouter(prefix="/horses", tags=["Horses"])
 

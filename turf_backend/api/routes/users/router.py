@@ -3,17 +3,11 @@ from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
+from turf_backend.api.auth import create_access_token, hash_password, verify_password
 from turf_backend.api.dependencies import DatabaseSession
-from turf_backend.auth import (
-    AccessToken,
-    User,
-    UserCreatePayload,
-    UserLogin,
-    UserOut,
-    create_access_token,
-    hash_password,
-    verify_password,
-)
+from turf_backend.models import User
+
+from .schemas import AccessToken, UserCreatePayload, UserLogin, UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

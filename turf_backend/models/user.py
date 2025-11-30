@@ -1,16 +1,19 @@
+from uuid import UUID, uuid4
+
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, UniqueConstraint
 
 
 class User(SQLModel, table=True):  # type: ignore[call-arg]
-    __tablename__ = "users"  # optional, but explicit is better
-
-    id: int | None = Field(
-        default=None, primary_key=True, description="Unique identifier for the user"
+    user_id: UUID = Field(
+        default_factory=uuid4,
+        primary_key=True,
+        description="Unique identifier for the user",
     )
     email: EmailStr = Field(description="User's email address")
     authorized: bool = Field(
-        default=False, description="Whether the user is authorized"
+        default=False,
+        description="Whether the user is authorized to access platform features",
     )
     hashed_password: str = Field(
         description="User's hashed password for authentication"

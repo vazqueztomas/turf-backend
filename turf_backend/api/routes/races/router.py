@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlmodel import select
 
 from turf_backend.api.dependencies import DatabaseSession
-from turf_backend.models.turf import Horse, Race
+from turf_backend.models import Horse, Race
 
 router = APIRouter(prefix="/races", tags=["Races"])
 

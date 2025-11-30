@@ -10,7 +10,7 @@ from uuid import UUID
 import pdfplumber
 from sqlmodel import Session
 
-from turf_backend.models.turf import Horse, Race
+from turf_backend.models import Horse, Race
 from turf_backend.services.file import FileService
 from turf_backend.utils import (
     HTMLParser,

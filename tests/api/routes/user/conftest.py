@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine, text
 
-from turf_backend.auth import User
 from turf_backend.database import get_connection
 from turf_backend.main import app
+from turf_backend.models import User
 
 
 # -----------------------------

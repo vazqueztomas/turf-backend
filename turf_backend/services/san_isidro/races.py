@@ -6,7 +6,7 @@ from uuid import UUID
 import pdfplumber
 from sqlmodel import Session
 
-from turf_backend.models.turf import Horse, Race
+from turf_backend.models import Horse, Race
 from turf_backend.services.san_isidro.helper import (
     DISTANCE_RE,
     HOUR_RE,

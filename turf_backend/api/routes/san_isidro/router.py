@@ -38,7 +38,6 @@ async def upload_pdf(
 
     return JSONResponse(
         content={
-            "races_created": total_inserted,
-            "horses_inserted": len(horses),
+            "horses_inserted": total_inserted,
         }
     )
