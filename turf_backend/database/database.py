@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from turf_backend.core.config.settings import database_url
+from turf_backend.utils import Settings
 
 
 class DatabaseConnection:
@@ -17,7 +17,7 @@ class DatabaseConnection:
             yield session
 
 
-database = DatabaseConnection(database_url)
+database = DatabaseConnection(Settings.DATABASE_URL)
 
 
 def get_connection() -> Generator[Session, None, None]:

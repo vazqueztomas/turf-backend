@@ -36,7 +36,6 @@ jobs:
         echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> $GITHUB_ENV
         echo "DB_PORT=5432" >> $GITHUB_ENV
         echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> $GITHUB_ENV
-        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY}}" >> $GITHUB_ENV
 
     - name: Run tests
       run: pipenv run test

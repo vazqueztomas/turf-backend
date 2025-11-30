@@ -1,4 +1,3 @@
-import logging
 import re
 import uuid
 
@@ -11,9 +10,6 @@ from turf_backend.services.san_isidro.helper import (
     extract_races_number_name_and_weight,
     parse_weight,
 )
-
-logger = logging.getLogger("turf")
-logger.setLevel(logging.INFO)
 
 
 def parse_pdf_horses(pdf_path: str) -> list[Horse]:

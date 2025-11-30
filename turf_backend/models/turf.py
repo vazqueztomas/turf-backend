@@ -1,13 +1,8 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
-
-
-class AvailableLocations(str, Enum):
-    PALERMO = "palermo"
 
 
 class Horse(SQLModel, table=True):

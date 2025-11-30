@@ -49,7 +49,8 @@ def find_race_number_and_line_above(
 ) -> tuple[int, int, str | None] | None:
     """
     Search upward from from_index to find a line that contains a race number.
-    Returns tuple (race_number, line_index, inline_text) where inline_text is the rest of the line after the number (if any).
+    Returns tuple (race_number, line_index, inline_text) where inline_text
+    is the rest of the line after the number (if any).
     """
     for idx in range(from_index, -1, -1):
         candidate = lines[idx]
@@ -80,7 +81,8 @@ def find_name_below_or_inline(
 ) -> str | None:
     """
     Find the race name. Preference:
-      1) If inline_text is provided and looks like a Premio/... line, extract name from it.
+      1) If inline_text is provided and looks like a Premio/... line,
+        extract name from it.
       2) Otherwise scan lines below for Premio/Clásico/... lines.
       3) If none found, return None to allow fallback.
     """
