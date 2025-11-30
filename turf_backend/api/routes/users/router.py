@@ -1,9 +1,9 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
-from turf_backend.api.dependencies import UserServiceDependency, UserRepository
+from turf_backend.api.dependencies import UserRepository, UserServiceDependency
 from turf_backend.models import User
 
 from .schemas import AccessToken, UserCreatePayload, UserLogin, UserOut
@@ -11,6 +11,7 @@ from .schemas import AccessToken, UserCreatePayload, UserLogin, UserOut
 router = APIRouter(prefix="/users", tags=["Users"])
 
 # TODO: Add exception handlers
+
 
 @router.get("")
 def get_all_users(user_repository: UserRepository) -> Sequence[User]:

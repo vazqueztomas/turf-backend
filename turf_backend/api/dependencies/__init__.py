@@ -4,8 +4,8 @@ from .services import UserServiceDependency
 
 __all__ = [
     "DatabaseSession",
-    "UserRepository",
     "HorseRepository",
     "RaceRepository",
+    "UserRepository",
     "UserServiceDependency",
 ]

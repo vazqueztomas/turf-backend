@@ -8,10 +8,10 @@ from .user import (
 )
 
 __all__ = [
-    "FileService",
-    "PalermoService",
-    "UserService",
-    "UserNotFound",
     "EmailAlreadyRegistered",
+    "FileService",
     "InvalidUserCredentials",
+    "PalermoService",
+    "UserNotFound",
+    "UserService",
 ]

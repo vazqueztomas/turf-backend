@@ -7,7 +7,7 @@ from turf_backend.models import Horse
 router = APIRouter(prefix="/horses", tags=["Horses"])
 
 
-@router.get("/", response_model=list[Horse])
+@router.get("", response_model=list[Horse])
 def get_horses(
     session: DatabaseSession,
     nombre: str | None = Query(None, description="Buscar por nombre (parcial)"),

@@ -2,8 +2,8 @@ from .exceptions import EmailAlreadyRegistered, InvalidUserCredentials, UserNotF
 from .service import UserService
 
 __all__ = [
-    "UserService",
-    "UserNotFound",
-    "InvalidUserCredentials",
     "EmailAlreadyRegistered",
+    "InvalidUserCredentials",
+    "UserNotFound",
+    "UserService",
 ]
