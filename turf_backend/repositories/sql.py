@@ -49,26 +49,26 @@ class SQLRepository(Generic[T]):
             statement = statement.offset(skip).limit(limit)
             return list(session.exec(statement).all())
 
+    def get_by_params(self, skip: int = 0, limit: int = 100, **params: Any) -> list[T]:
+        """Get a list of records record matching the given parameters."""
+        with next(get_connection()) as session:
+            statement = select(self.model)
+
+            for field_name, value in params.items():
+                if value is not None:
+                    field = getattr(self.model, field_name)
+                    statement = statement.where(field == value)
+
+            statement = statement.offset(skip).limit(limit)
+            return list(session.exec(statement).all())
+
+    def get_first_by_params(self, **params: Any) -> T | None:
+        """Get the first record matching the given parameters."""
+        result = self.get_by_params(skip=0, limit=1, **params)
+        return result[0] if result else None
+
     def delete(self, entity: T) -> None:
         """Delete a record from the database."""
         with next(get_connection()) as session:
             session.delete(entity)
             session.commit()
-
-    def delete_by_id(self, id: UUID) -> bool:
-        """Delete a record by its primary key ID. Returns True if deleted, False if not found."""
-        entity = self.get_by_id(id)
-        if entity:
-            self.delete(entity)
-            return True
-        return False
-
-    def exists(self, id: UUID) -> bool:
-        """Check if a record exists by its primary key ID."""
-        return self.get_by_id(id) is not None
-
-    def count(self) -> int:
-        """Count total records."""
-        with next(get_connection()) as session:
-            statement = select(self.model)
-            return len(list(session.exec(statement).all()))
