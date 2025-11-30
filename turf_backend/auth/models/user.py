@@ -2,7 +2,7 @@ from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, UniqueConstraint
 
 
-class User(SQLModel, table=True):
+class User(SQLModel, table=True):  # type: ignore[call-arg]
     __tablename__ = "users"  # optional, but explicit is better
 
     id: int | None = Field(

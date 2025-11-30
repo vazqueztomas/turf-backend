@@ -49,29 +49,31 @@ class PalermoService:
         response = http_request(Settings.PALERMO_URL)
         tags = HTMLParser.find_all(response.text, "a", href=True)
         pdf_sources = [
-            tag["href"] for tag in tags if "programa-oficial-reunion" in tag["href"]
+            tag.get("href")
+            for tag in tags
+            if "programa-oficial-reunion" in tag.get("href", "")
         ]
 
         if not pdf_sources:
             log("No PDFs sources found", LogLevel.WARNING)
             return "No PDFs sources found"
 
-        pdf_urls = []
+        pdf_urls: list[str] = []
         for source in pdf_sources:
-            response = http_request(source)
+            response = http_request(source)  # type: ignore[arg-type]
             tags = HTMLParser.find_all(response.text, "a", href=True)
             pdf_urls.extend(
-                tag["href"]
+                tag.get("href")
                 for tag in tags
-                if tag["href"].endswith(".pdf")
-                and tag.text.strip() == Settings.PALERMO_DOWNLOAD_TEXT
+                if tag.get("href", "").endswith(".pdf")
+                and tag.text.strip() == Settings.PALERMO_DOWNLOAD_TEXT  # type: ignore[attr-defined]
             )
 
         for url in pdf_urls:
             response = http_request(url)
             pdf_filename = extract_date(response.content)
             file_path = self.palermo_path / f"{pdf_filename}.pdf"
-            self.file_service(file_path, response.content)
+            self.file_service.save_file(file_path, response.content)
 
         return "PDFs downloaded successfully"
 
@@ -222,7 +224,7 @@ class PalermoService:
         # Si no hay nombre, usar fallback
         if not nombre:
             header = RACE_HEADER_RE.search(lines[header_idx])
-            numero = header.group("num")
+            numero = header.group("num")  # type: ignore[union-attr]
             nombre = f"Carrera {numero}"
 
         return {
@@ -273,9 +275,9 @@ class PalermoService:
                 hipodromo="Palermo",
                 fecha=datetime.now().strftime("%d/%m/%Y"),
                 numero=None,
-                nombre=race_info.get("nombre"),
-                distancia=race_info.get("distancia"),
-                hour=race_info.get("hora"),
+                nombre=race_info.get("nombre"),  # type: ignore[union-attr]
+                distancia=race_info.get("distancia"),  # type: ignore[union-attr]
+                hour=race_info.get("hora"),  # type: ignore[union-attr]
             )
 
             race.race_id = rid

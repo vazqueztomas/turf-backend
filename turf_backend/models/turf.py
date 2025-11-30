@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
 
-class Horse(SQLModel, table=True):
+class Horse(SQLModel, table=True):  # type: ignore[call-arg]
     __tablename__ = "horses"
     __table_args__ = (
         UniqueConstraint("nombre", "numero", "page", name="uq_horse_unique"),
@@ -29,7 +29,7 @@ class Horse(SQLModel, table=True):
     race: Optional["Race"] = Relationship(back_populates="horses")
 
 
-class Race(SQLModel, table=True):
+class Race(SQLModel, table=True):  # type: ignore[call-arg]
     __tablename__ = "races"
     race_id: UUID = Field(default=uuid4(), primary_key=True, index=True)
     numero: int | None = Field(default=None, index=True)

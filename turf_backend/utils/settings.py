@@ -1,18 +1,17 @@
 from dotenv import load_dotenv
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
 
 
 class ApplicationSettings(BaseSettings):
-    ENVIRONMENT: str = Field(..., json_schema_extra={"env": "ENVIRONMENT"})
-    POSTGRES_DATABASE: str = Field(..., json_schema_extra={"env": "POSTGRES_DATABASE"})
-    POSTGRES_USER: str = Field(..., json_schema_extra={"env": "POSTGRES_USER"})
-    POSTGRES_PASSWORD: str = Field(..., json_schema_extra={"env": "POSTGRES_PASSWORD"})
-    POSTGRES_HOST: str = Field(..., json_schema_extra={"env": "POSTGRES_HOST"})
-    POSTGRES_PORT: int = Field(5432, json_schema_extra={"env": "POSTGRES_PORT"})
-    POSTGRES_URL: str = Field(..., json_schema_extra={"env": "POSTGRES_URL_NO_SSL"})
+    ENVIRONMENT: str
+    POSTGRES_DATABASE: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int = 5432
+    POSTGRES_URL: str
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

@@ -8,7 +8,7 @@ from turf_backend.utils import LogLevel, get_logger
 @pytest.fixture
 def capture_logs() -> Generator[list[str]]:
     logger = get_logger()
-    output = []
+    output: list[str] = []
     handler_id = logger.add(output.append)
     yield output
     logger.remove(handler_id)

@@ -13,8 +13,7 @@ router = APIRouter(prefix="/palermo", tags=["Palermo"])
 
 @router.get("/pdf/fetch")
 def fetch_files(palermo_service: InjectedPalermoService) -> str:
-    result = palermo_service.download_palermo_files()
-    return result
+    return palermo_service.download_palermo_files()
 
 
 @router.get("/pdf/list")
