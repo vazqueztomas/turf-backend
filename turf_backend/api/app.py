@@ -7,6 +7,7 @@ from turf_backend.api.routes import (
     horses_router,
     palermo_router,
     races_router,
+    register_user_exception_handlers,
     users_router,
 )
 
@@ -26,6 +27,8 @@ app.include_router(palermo_router)
 app.include_router(races_router)
 app.include_router(horses_router)
 app.include_router(users_router)
+
+register_user_exception_handlers(app)
 
 
 @app.exception_handler(HTTPException)

@@ -3,6 +3,7 @@ from .horses import router as horses_router
 from .palermo import router as palermo_router
 from .races import router as races_router
 from .san_isidro import router as san_isidro_router
+from .users import register_user_exception_handlers
 from .users import router as users_router
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "races_router",
     "san_isidro_router",
     "users_router",
+    register_user_exception_handlers,
 ]

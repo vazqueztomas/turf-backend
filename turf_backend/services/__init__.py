@@ -1,4 +1,17 @@
 from .file import FileService
 from .palermo import PalermoService
+from .user import (
+    EmailAlreadyRegistered,
+    InvalidUserCredentials,
+    UserNotFound,
+    UserService,
+)
 
-__all__ = ["FileService", "PalermoService"]
+__all__ = [
+    "FileService",
+    "PalermoService",
+    "UserService",
+    "UserNotFound",
+    "EmailAlreadyRegistered",
+    "InvalidUserCredentials",
+]
