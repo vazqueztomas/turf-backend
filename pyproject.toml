@@ -1,134 +1,106 @@
 [project]
 name = "turf-backend"
-requires-python = ">= 3.12"
-dynamic = ["version"]
-authors = [{ name = 'Tomas Vazquez', email = "vazquezt2018@gmail.com" }]
 description = "Turf Backend API"
 
-[project.urls]
-Homepage = "https://localhost:3000"
-Repository = "https://github.com/vazqueztomas/turf-backend"
-
+authors = [ { name = 'Tomas Vazquez', email = "vazquezt2018@gmail.com" } ]
+requires-python = ">=3.12"
 ######################
 # coverage configuration #
 ######################
-[tool.coverage.run]
-source = ["core", "database", "models", "controllers", "routes", "schemas"]
-[tool.coverage.report]
-exclude_also = [
-    "def __repr__",
-    "if self\\.debug",
-
-    "raise AssertionError",
-    "raise NotImplementedError",
-
-    "if 0:",
-    "if __name__ == .__main__.:",
-
-    "@(abc\\.)?abstractmethod",
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
-
-
-[tool.coverage.xml]
-output = "coverage.xml"
-
-[tool.coverage.html]
-directory = "htmlcov"
-title = "Coverage Report"
-
-######################
-# ruff configuration #
-######################
+dynamic = [ "version" ]
+urls.Homepage = "https://localhost:3000"
+urls.Repository = "https://github.com/vazqueztomas/turf-backend"
 
 [tool.ruff]
-fix = true
-preview = true
 exclude = [
-    ".git",
-    ".mypy_cache",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".venv",
-    ".vscode",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "site-packages",
-    "venv",
-    "playground",
+  ".git",
+  ".mypy_cache",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".venv",
+  ".vscode",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "playground",
+  "site-packages",
+  "venv",
 ]
 
-
-[tool.ruff.lint]
-extend-select = [
-    "FBT",
-    "COM",
-    "E",
-    "UP",
-    "BLE",
-    "B",
-    'A',
-    'C4',
-    'ICN',
-    'PIE',
-    'RSE',
-    'SIM',
-    'ARG',
-    'G',
-    'ISC',
-    'T20',
-    'EM',
-    'SLF',
-    'PT',
-    'RET',
-    'TID',
-    'PTH',
-    'LOG',
-    'TD',
-    'FIX',
-    'TRY',
-    'I',
-    'ERA',
-    'PERF',
-    'FURB',
-    'RUF',
-]
-ignore = ["COM812", "ISC001", "TD003", "FIX002", "B008", "FBT002"]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
+preview = true
+fix = true
+format.indent-style = "space"
+format.quote-style = "double"
+format.line-ending = "auto"
+format.skip-magic-trailing-comma = false
 ######################
 # pylint configuration #
 ######################
+lint.extend-select = [
+  "A",
+  "ARG",
+  "B",
+  "BLE",
+  "C4",
+  "COM",
+  "E",
+  "EM",
+  "ERA",
+  "FBT",
+  "FIX",
+  "FURB",
+  "G",
+  "I",
+  "ICN",
+  "ISC",
+  "LOG",
+  "PERF",
+  "PIE",
+  "PT",
+  "PTH",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "T20",
+  "TD",
+  "TID",
+  "TRY",
+  "UP",
+]
+lint.ignore = [ "B008", "COM812", "FBT002", "FIX002", "ISC001", "TD003" ]
 
 [tool.pylint.main]
 load-plugins = [
-    "pylint.extensions.bad_builtin",
-    "pylint.extensions.code_style",
-    "pylint.extensions.comparison_placement",
-    "pylint.extensions.consider_refactoring_into_while_condition",
-    "pylint.extensions.dunder",
-    "pylint.extensions.eq_without_hash",
-    "pylint.extensions.for_any_all",
-    "pylint.extensions.mccabe",
-    "pylint.extensions.no_self_use",
-    "pylint.extensions.overlapping_exceptions",
-    "pylint.extensions.private_import",
-    "pylint.extensions.redefined_loop_name",
-    "pylint.extensions.set_membership",
+  "pylint.extensions.bad_builtin",
+  "pylint.extensions.code_style",
+  "pylint.extensions.comparison_placement",
+  "pylint.extensions.consider_refactoring_into_while_condition",
+  "pylint.extensions.dunder",
+  "pylint.extensions.eq_without_hash",
+  "pylint.extensions.for_any_all",
+  "pylint.extensions.mccabe",
+  "pylint.extensions.no_self_use",
+  "pylint.extensions.overlapping_exceptions",
+  "pylint.extensions.private_import",
+  "pylint.extensions.redefined_loop_name",
+  "pylint.extensions.set_membership",
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
-fail-on = ["I"]
+fail-on = [ "I" ]
 fail-under = '10'
-ignore = ['.git', 'playground.py', "playground/*"]
+ignore = [ '.git', 'playground.py', "playground/*" ]
 ignore-patterns = ''
 jobs = 4
 limit-inference-results = 100
@@ -286,7 +258,6 @@ ignore-docstrings = 'yes'
 ignore-imports = 'no'
 min-similarity-lines = 4
 
-
 [tool.pylint.BASIC]
 argument-naming-style = 'snake_case'
 attr-naming-style = 'snake_case'
@@ -331,7 +302,6 @@ variable-naming-style = 'snake_case'
 check-quote-consistency = 'no'
 check-str-concat-over-line-jumps = 'no'
 
-
 [tool.pylint.IMPORTS]
 allow-any-import-level = ''
 allow-wildcard-with-all = 'no'
@@ -348,7 +318,6 @@ known-third-party = 'enchant'
 
 preferred-modules = ''
 
-
 [tool.pylint.CLASSES]
 defining-attr-methods = '''__init__,
                       __new__,
@@ -363,7 +332,6 @@ exclude-protected = '''_asdict,
 '''
 valid-classmethod-first-arg = 'cls'
 valid-metaclass-classmethod-first-arg = 'cls'
-
 
 [tool.pylint.DESIGN]
 max-args = 5
@@ -383,7 +351,6 @@ max-statements = 50
 
 min-public-methods = 2
 
-
 [tool.pylint.EXCEPTIONS]
 overgeneral-exceptions = '''BaseException,
                        Exception
@@ -398,8 +365,7 @@ attr-naming-style = "snake_case"
 
 attr-rgx = "[a-z_][a-z0-9_]{2,30}$"
 
-bad-names = ["foo", "bar", "baz", "toto", "tutu", "tata"]
-
+bad-names = [ "foo", "bar", "baz", "toto", "tutu", "tata" ]
 
 class-attribute-naming-style = "any"
 
@@ -421,10 +387,9 @@ function-naming-style = "snake_case"
 
 function-rgx = "[a-z_][a-z0-9_]{2,30}$"
 
-good-names = ["i", "j", "k", "ex", "Run", "_"]
+good-names = [ "i", "j", "k", "ex", "Run", "_" ]
 
 include-naming-hint = true
-
 
 inlinevar-naming-style = "any"
 
@@ -440,28 +405,25 @@ module-rgx = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$"
 
 no-docstring-rgx = "^_"
 
-property-classes = ["abc.abstractproperty"]
+property-classes = [ "abc.abstractproperty" ]
 
 variable-naming-style = "snake_case"
 
 variable-rgx = "[a-z_][a-z0-9_]{2,30}$"
 
-
 [tool.pylint.classes]
 
-defining-attr-methods = ["__init__", "__new__", "setUp"]
+defining-attr-methods = [ "__init__", "__new__", "setUp" ]
 
-exclude-protected = ["_asdict", "_fields", "_replace", "_source", "_make"]
+exclude-protected = [ "_asdict", "_fields", "_replace", "_source", "_make" ]
 
-valid-classmethod-first-arg = ["cls"]
+valid-classmethod-first-arg = [ "cls" ]
 
-valid-metaclass-classmethod-first-arg = ["mcs"]
-
+valid-metaclass-classmethod-first-arg = [ "mcs" ]
 
 [tool.pylint.deprecated_builtins]
 
-bad-functions = ["map", "filter"]
-
+bad-functions = [ "map", "filter" ]
 
 [tool.pylint.design]
 
@@ -485,11 +447,9 @@ max-returns = 6
 
 max-statements = 30
 
-
 [tool.pylint.exceptions]
 
-overgeneral-exceptions = ["'builtins.Exception'"]
-
+overgeneral-exceptions = [ "'builtins.Exception'" ]
 
 [tool.pylint.format]
 
@@ -501,120 +461,109 @@ max-line-length = 120
 
 max-module-lines = 300
 
-
 [tool.pylint.imports]
 
-deprecated-modules = ["regsub", "TERMIOS", "Bastion", "rexec"]
+deprecated-modules = [ "regsub", "TERMIOS", "Bastion", "rexec" ]
 
-known-third-party = ["enchant"]
-
+known-third-party = [ "enchant" ]
 
 [tool.pylint.logging]
 
 logging-format-style = "old"
 
-
-logging-modules = ["logging"]
-
+logging-modules = [ "logging" ]
 
 [tool.pylint."messages control"]
 
 confidence = [
 
-    "HIGH",
+  "HIGH",
 
-    "CONTROL_FLOW",
+  "CONTROL_FLOW",
 
-    "INFERENCE",
+  "INFERENCE",
 
-    "INFERENCE_FAILURE",
+  "INFERENCE_FAILURE",
 
-    "UNDEFINED",
+  "UNDEFINED",
 
 ]
-
 
 disable = [
 
-    "redefined-outer-name",
+  "redefined-outer-name",
 
-    "missing-function-docstring",
+  "missing-function-docstring",
 
-    "missing-module-docstring",
+  "missing-module-docstring",
 
-    "import-error",
+  "import-error",
 
-    "invalid-name",
+  "invalid-name",
 
-    "logging-fstring-interpolation",
+  "logging-fstring-interpolation",
 
-    "consider-using-assignment-expr",
+  "consider-using-assignment-expr",
 
-    "subprocess-run-check",
+  "subprocess-run-check",
 
-    "unused-import", # Check and fix by Ruff
+  "unused-import", # Check and fix by Ruff
 
-    "too-few-public-methods", # Taskweaver plugins usually have few methods
+  "too-few-public-methods", # Taskweaver plugins usually have few methods
 
 ]
-
 
 enable = [
 
-    "bad-inline-option",
+  "bad-inline-option",
 
-    "file-ignored",
+  "file-ignored",
 
-    "useless-suppression",
+  "useless-suppression",
 
-    "deprecated-pragma",
+  "deprecated-pragma",
 
-    "use-symbolic-message-instead",
+  "use-symbolic-message-instead",
 
 ]
-
 
 [tool.pylint.method_args]
 
 timeout-methods = [
 
-    "requests.api.delete",
+  "requests.api.delete",
 
-    "requests.api.get",
+  "requests.api.get",
 
-    "requests.api.head",
+  "requests.api.head",
 
-    "requests.api.options",
+  "requests.api.options",
 
-    "requests.api.patch",
+  "requests.api.patch",
 
-    "requests.api.post",
+  "requests.api.post",
 
-    "requests.api.put",
+  "requests.api.put",
 
-    "requests.api.request",
+  "requests.api.request",
 
 ]
 
-
 [tool.pylint.miscellaneous]
 
-notes = ["FIXME", "XXX", "TODO"]
-
+notes = [ "FIXME", "XXX", "TODO" ]
 
 [tool.pylint.refactoring]
 
 max-nested-blocks = 5
 
-never-returning-functions = ["sys.exit", "argparse.parse_error"]
-
+never-returning-functions = [ "sys.exit", "argparse.parse_error" ]
 
 [tool.pylint.reports]
 
 evaluation = "10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)"
 
 score = true
-
 
 [tool.pylint.similarities]
 
@@ -626,23 +575,19 @@ ignore-signatures = true
 
 min-similarity-lines = 4
 
-
 [tool.pylint.spelling]
 
 max-spelling-suggestions = 4
 
 spelling-ignore-comment-directives = "fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,mypy:"
 
-
 [tool.pylint.string]
-
 
 check-str-concat-over-line-jumps = true
 
-
 [tool.pylint.typecheck]
 
-contextmanager-decorators = ["contextlib.contextmanager"]
+contextmanager-decorators = [ "contextlib.contextmanager" ]
 
 ignore-none = true
 
@@ -650,17 +595,17 @@ ignore-on-opaque-inference = true
 
 ignored-checks-for-mixins = [
 
-    "no-member",
+  "no-member",
 
-    "not-async-context-manager",
+  "not-async-context-manager",
 
-    "not-context-manager",
+  "not-context-manager",
 
-    "attribute-defined-outside-init",
+  "attribute-defined-outside-init",
 
 ]
 
-ignored-classes = ["optparse.Values", "thread._local", "_thread._local"]
+ignored-classes = [ "optparse.Values", "thread._local", "_thread._local" ]
 
 missing-member-hint = true
 
@@ -670,15 +615,41 @@ missing-member-max-choices = 1
 
 mixin-class-rgx = ".*[Mm]ixin"
 
-
 [tool.pylint.variables]
 
 allow-global-unused-variables = true
 
-callbacks = ["cb_", "_cb"]
+callbacks = [ "cb_", "_cb" ]
 
 dummy-variables-rgx = "(_+[a-zA-Z0-9]*?$)|dummy"
 
 ignored-argument-names = "_.*"
 
-redefining-builtins-modules = ["six.moves", "future.builtins"]
+redefining-builtins-modules = [ "six.moves", "future.builtins" ]
+
+[tool.coverage.run]
+source = [ "core", "database", "models", "controllers", "routes", "schemas" ]
+[tool.coverage.report]
+exclude_also = [
+  "def __repr__",
+  "if self\\.debug",
+
+  "raise AssertionError",
+  "raise NotImplementedError",
+
+  "if 0:",
+  "if __name__ == .__main__.:",
+
+  "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "Coverage Report"
+
+######################
+# ruff configuration #
+######################

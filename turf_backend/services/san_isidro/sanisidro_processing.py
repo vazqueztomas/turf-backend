@@ -1,19 +1,16 @@
-import logging
+# pylint: disable=too-many-locals, duplicate-code
 import re
 import uuid
 
 import pdfplumber
 
-from turf_backend.models.turf import Horse
+from turf_backend.models import Horse
 from turf_backend.services.san_isidro.helper import (
     MAIN_LINE_RE,
     extract_jockey_trainer_and_parents,
     extract_races_number_name_and_weight,
     parse_weight,
 )
-
-logger = logging.getLogger("turf")
-logger.setLevel(logging.INFO)
 
 
 def parse_pdf_horses(pdf_path: str) -> list[Horse]:

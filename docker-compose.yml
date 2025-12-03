@@ -1,18 +1,18 @@
 services:
-    postgres-db:
-        image: postgres:15.3
-        container_name: postgres
-        restart: always
-        environment:
-            POSTGRES_USER: ${POSTGRES_USER}
-            POSTGRES_DB: ${POSTGRES_DATABASE}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-            TZ: '03' #Set local datetime (Argentina)
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
+  postgres-db:
+    image: postgres:15.3
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: '03' #Set local datetime (Argentina)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-        ports:
-            - ${DB_PORT}:5432
+    ports:
+      - ${POSTGRES_PORT}:5432
 
 volumes:
-    postgres_data:
+  postgres_data:
