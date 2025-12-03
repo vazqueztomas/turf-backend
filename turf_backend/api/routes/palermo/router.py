@@ -1,4 +1,3 @@
-# pylint: disable=too-many-locals
 import tempfile
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status

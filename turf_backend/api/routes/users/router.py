@@ -10,8 +10,6 @@ from .schemas import AccessToken, UserCreatePayload, UserLogin, UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-# TODO: Add exception handlers
-
 
 @router.get("")
 def get_all_users(user_repository: UserRepository) -> Sequence[User]:

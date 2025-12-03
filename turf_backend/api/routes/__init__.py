@@ -11,7 +11,7 @@ __all__ = [
     "horses_router",
     "palermo_router",
     "races_router",
+    "register_user_exception_handlers",
     "san_isidro_router",
     "users_router",
-    register_user_exception_handlers,
 ]

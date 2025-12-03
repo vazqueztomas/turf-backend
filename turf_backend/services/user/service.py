@@ -48,8 +48,7 @@ class UserService:
             raise UserNotFound(message)
 
         existing_user.authorized = True
-        user = self.user_repository.upsert(existing_user)
-        return user
+        return self.user_repository.upsert(existing_user)
 
     def register_user(self, email: str, name: str, password: str) -> User:
         existing_user = self.user_repository.get_first_by_params(email=email)
@@ -60,8 +59,7 @@ class UserService:
 
         hashed_password = self.hash_password(password)
         user = User(email=email, name=name, hashed_password=hashed_password)
-        user = self.user_repository.upsert(user)
-        return user
+        return self.user_repository.upsert(user)
 
     def login_user(self, email: str, password: str) -> str:
         user = self.user_repository.get_first_by_params(email=email)
@@ -70,8 +68,7 @@ class UserService:
             log(message, LogLevel.ERROR)
             raise InvalidUserCredentials(message)
 
-        token = self.create_access_token({"sub": user.email})
-        return token
+        return self.create_access_token({"sub": user.email})
 
     def get_user_by_id(self, user_id: UUID) -> User:
         existing_user = self.user_repository.get_by_id(user_id)

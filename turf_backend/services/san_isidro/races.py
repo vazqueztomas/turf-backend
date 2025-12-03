@@ -1,3 +1,4 @@
+# pylint: disable=too-many-locals, duplicate-code
 from collections import defaultdict
 from datetime import datetime
 from typing import Any

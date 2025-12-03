@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 import re
 
 REGEX_PDF_PALERMO = (

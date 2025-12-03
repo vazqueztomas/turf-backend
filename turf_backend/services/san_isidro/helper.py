@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code, too-many-locals
 import re
 
 RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)

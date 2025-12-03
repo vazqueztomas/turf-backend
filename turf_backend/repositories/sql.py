@@ -1,14 +1,12 @@
-from typing import Any, Generic, TypeVar
+from typing import Any
 from uuid import UUID
 
 from sqlmodel import SQLModel, col, select
 
 from turf_backend.database.database import get_connection
 
-T = TypeVar("T", bound=SQLModel)
 
-
-class SQLRepository(Generic[T]):
+class SQLRepository[T: SQLModel]:
     """Generic SQL repository for CRUD operations on SQLModel models."""
 
     def __init__(self, model: type[T]):
@@ -22,10 +20,10 @@ class SQLRepository(Generic[T]):
             session.refresh(entity)
             return entity
 
-    def get_by_id(self, id: UUID) -> T | None:
+    def get_by_id(self, id_: UUID) -> T | None:
         """Get a record by its primary key ID."""
         with next(get_connection()) as session:
-            return session.get(self.model, id)
+            return session.get(self.model, id_)
 
     def get_all(self, skip: int = 0, limit: int = 100) -> list[T]:
         """Get all records with pagination."""

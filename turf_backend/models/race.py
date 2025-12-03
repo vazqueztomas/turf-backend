@@ -12,4 +12,4 @@ class Race(SQLModel, table=True):  # type: ignore[call-arg]
     hipodromo: str | None = Field(default="Palermo")
     hour: str | None = Field(default=None)
 
-    horses: list["Horse"] = Relationship(back_populates="race")
+    horses: list["Horse"] = Relationship(back_populates="race")  # type: ignore[name-defined] # noqa: F821

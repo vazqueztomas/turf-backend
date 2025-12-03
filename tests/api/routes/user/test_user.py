@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select, text
 
-from turf_backend.auth import hash_password
 from turf_backend.models import User
+from turf_backend.services.user import UserService
 
 
 def create_user_in_db(
@@ -16,7 +16,7 @@ def create_user_in_db(
     user = User(
         email=email,
         name=name,
-        hashed_password=hash_password(password),
+        hashed_password=UserService().hash_password(password),
         authorized=authorized,
     )
     session.add(user)

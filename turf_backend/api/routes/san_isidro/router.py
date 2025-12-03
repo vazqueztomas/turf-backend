@@ -1,4 +1,4 @@
-# pylint: disable=too-many-locals, duplicate-code
+# pylint: disable=duplicate-code
 import tempfile
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status

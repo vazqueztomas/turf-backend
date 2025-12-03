@@ -4,12 +4,13 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
+from .race import Race
+
 
 class Horse(SQLModel, table=True):  # type: ignore[call-arg]
     __table_args__ = (
         UniqueConstraint("nombre", "numero", "page", name="uq_horse_unique"),
     )
-    __tablename__ = "horse"
 
     horse_id: UUID = Field(default_factory=uuid4, primary_key=True)
     race_id: UUID = Field(foreign_key="race.race_id")

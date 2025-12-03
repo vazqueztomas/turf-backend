@@ -1,3 +1,4 @@
+# pylint: disable=too-many-locals, duplicate-code
 import re
 import uuid
 

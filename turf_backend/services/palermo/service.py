@@ -1,4 +1,4 @@
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals, too-many-public-methods
 import re
 import uuid
 from collections import defaultdict
@@ -63,7 +63,7 @@ class PalermoService:
             response = http_request(source)  # type: ignore[arg-type]
             tags = HTMLParser.find_all(response.text, "a", href=True)
             pdf_urls.extend(
-                tag.get("href")
+                tag.get("href")  # type: ignore[misc]
                 for tag in tags
                 if tag.get("href", "").endswith(".pdf")
                 and tag.text.strip() == Settings.PALERMO_DOWNLOAD_TEXT  # type: ignore[attr-defined]
@@ -185,13 +185,6 @@ class PalermoService:
 
         session.commit()
         return inserted
-
-    # Encuentra la línea donde está la carrera
-    def find_race_header(lines, start_index):
-        for idx in range(start_index, -1, -1):
-            if RACE_HEADER_RE.search(lines[idx]):
-                return idx
-        return None
 
     def extract_race_block(self, lines, header_index, radius=4):
         start = max(0, header_index - radius)
