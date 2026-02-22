@@ -44,5 +44,13 @@ class Race(SQLModel, table=True):
     hipodromo: str | None = Field(default="Palermo")
     hour: str | None = Field(default=None)
 
-    # relación inversa con Horse
     horses: list["Horse"] = Relationship(back_populates="race")
+
+
+class PdfImport(SQLModel, table=True):
+    __tablename__ = "pdf_imports"
+    id: int | None = Field(default=None, primary_key=True)
+    file_hash: str = Field(unique=True, index=True)
+    filename: str
+    hipodromo: str
+    imported_at: datetime = Field(default_factory=datetime.now)

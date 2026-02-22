@@ -15,6 +15,7 @@ pydantic-settings = "==2.7.1"
 requests = "==2.32.5"
 beautifulsoup4 = "==4.14.2"
 python-jose = "==3.5.0"
+typing-extensions = "*"
 
 [dev-packages]
 ruff = "==0.9.1"
