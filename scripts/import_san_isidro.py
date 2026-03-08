@@ -14,6 +14,8 @@ import sys
 import tempfile
 from datetime import date, timedelta
 
+import requests
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Parsear POSTGRES_URL y setear las vars individuales que requiere settings.py
@@ -101,6 +103,24 @@ def import_day(engine, fecha: str, calendario_id: str) -> dict:
         return {"fecha": fecha, "status": "error", "reason": str(e)}
 
 
+def get_days_via_backend(tipo: str, start: str = "", end: str = "") -> list[tuple[str, str]]:
+    """
+    Obtiene los días del calendario usando el backend como proxy,
+    para evitar que GitHub Actions sea bloqueado por hipodromosanisidro.com.
+    """
+    backend_url = os.environ.get("BACKEND_URL", "https://turf-backend-theta.vercel.app")
+    if tipo == "upcoming":
+        url = f"{backend_url}/san-isidro/calendar/orange-days"
+        response = requests.get(url, timeout=30)
+    else:
+        url = f"{backend_url}/san-isidro/calendar/resultados"
+        response = requests.get(url, params={"start": start, "end": end}, timeout=30)
+
+    response.raise_for_status()
+    data = response.json()
+    return [(d["fecha"], d["calendario_id"]) for d in data["days"]]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tipo", choices=["resultados", "upcoming"], required=True)
@@ -112,13 +132,11 @@ def main():
     SQLModel.metadata.create_all(engine)
 
     if args.tipo == "upcoming":
-        days = scraper.get_orange_days()
+        days = get_days_via_backend("upcoming")
     else:
         if not args.start or not args.end:
             parser.error("--start y --end son requeridos para --tipo resultados")
-        start = date.fromisoformat(args.start)
-        end = date.fromisoformat(args.end)
-        days = scraper.get_resultados_days(start, end)
+        days = get_days_via_backend("resultados", args.start, args.end)
 
     logger.info("Días a procesar: %d", len(days))
 

@@ -36,6 +36,11 @@ def get_horses(
     return session.exec(query.offset(offset).limit(limit)).all()
 
 
+@router.get("/horses/count")
+def get_horses_count(session: Session = Depends(get_connection)):
+    return {"count": session.exec(select(func.count()).select_from(Horse)).one()}
+
+
 @router.get("/horses/random", response_model=list[Horse])
 def get_random_horses(
     session: Session = Depends(get_connection),

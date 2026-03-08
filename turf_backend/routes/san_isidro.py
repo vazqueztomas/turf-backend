@@ -93,6 +93,20 @@ def get_orange_days():
         raise HTTPException(status_code=500, detail=f"Error fetching calendar: {e}")
 
 
+@router.get("/calendar/resultados")
+def get_resultados_days(
+    start: date = Query(..., description="Fecha inicio (YYYY-MM-DD)"),
+    end: date = Query(..., description="Fecha fin (YYYY-MM-DD)"),
+):
+    """Get all resultados days for a date range."""
+    try:
+        days = scraper.get_resultados_days(start, end)
+        return {"days": [{"fecha": fecha, "calendario_id": cid} for fecha, cid in days]}
+    except Exception as e:
+        logger.exception("Error fetching resultados days")
+        raise HTTPException(status_code=500, detail=f"Error fetching calendar: {e}")
+
+
 @router.get("/scrape/{calendario_id}")
 def scrape_race_day(calendario_id: str):
     """Scrape races from a specific day by calendario_id."""
