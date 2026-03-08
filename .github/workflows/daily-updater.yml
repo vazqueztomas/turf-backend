@@ -2,13 +2,42 @@ name: Daily Turf Update
 
 on:
   schedule:
-    - cron: "0 6 * * *" # todos los días a las 6 AM UTC
+    - cron: "0 6 * * *"   # todos los días a las 6 AM UTC
+    - cron: "0 7 1 * *"   # el 1ro de cada mes a las 7 AM UTC (sync histórico del mes anterior)
   workflow_dispatch:
+    inputs:
+      sync_historical:
+        description: "Sync histórico (YYYY-MM-DD:YYYY-MM-DD, opcional)"
+        required: false
 
 jobs:
-  update:
+  daily-update:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
     steps:
-      - name: Trigger FastAPI endpoint
+      - name: Trigger daily FastAPI update
         run: |
-          curl -X POST "https://turf-backend-theta.vercel.app/turf/daily-update"
+          curl -f -X POST "https://turf-backend-theta.vercel.app/turf/daily-update"
+
+      - name: Sync San Isidro upcoming PDFs
+        run: |
+          curl -f -X POST "https://turf-backend-theta.vercel.app/san-isidro/sync-all"
+
+      - name: Sync histórico manual (si se especificó rango)
+        if: github.event.inputs.sync_historical != ''
+        run: |
+          RANGE="${{ github.event.inputs.sync_historical }}"
+          START=$(echo $RANGE | cut -d: -f1)
+          END=$(echo $RANGE | cut -d: -f2)
+          curl -f -X POST "https://turf-backend-theta.vercel.app/san-isidro/sync-historical?start=${START}&end=${END}"
+
+  monthly-historical:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 7 1 * *'
+    steps:
+      - name: Sync San Isidro histórico del mes anterior
+        run: |
+          START=$(date -d "$(date +%Y-%m-01) -1 month" +%Y-%m-%d)
+          END=$(date -d "$(date +%Y-%m-01) -1 day" +%Y-%m-%d)
+          echo "Syncing historical from $START to $END"
+          curl -f -X POST "https://turf-backend-theta.vercel.app/san-isidro/sync-historical?start=${START}&end=${END}"

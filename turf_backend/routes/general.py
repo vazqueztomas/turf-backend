@@ -3,6 +3,7 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlmodel import Session, select, text
 
 from turf_backend.database import get_connection
@@ -33,6 +34,22 @@ def get_horses(
 
     offset = (page - 1) * limit
     return session.exec(query.offset(offset).limit(limit)).all()
+
+
+@router.get("/horses/random", response_model=list[Horse])
+def get_random_horses(
+    session: Session = Depends(get_connection),
+    count: int = Query(4, ge=1, le=20, description="Cantidad de caballos aleatorios"),
+):
+    return session.exec(select(Horse).order_by(func.random()).limit(count)).all()
+
+
+@router.get("/races/random")
+def get_random_races(
+    session: Session = Depends(get_connection),
+    count: int = Query(3, ge=1, le=20, description="Cantidad de carreras aleatorias"),
+):
+    return session.exec(select(Race).order_by(func.random()).limit(count)).all()
 
 
 @router.get("/races/")
