@@ -15,10 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
     steps:
-      - name: Trigger daily FastAPI update
-        run: |
-          curl -f -X POST "https://turf-backend-theta.vercel.app/turf/daily-update"
-
       - name: Sync San Isidro upcoming PDFs
         run: |
           curl -f -X POST "https://turf-backend-theta.vercel.app/san-isidro/sync-all"
