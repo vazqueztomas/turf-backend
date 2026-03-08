@@ -16,6 +16,15 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Setear vars requeridas por settings.py antes de importar turf_backend
+os.environ.setdefault("ENVIRONMENT", "DEVELOPMENT")
+os.environ.setdefault("POSTGRES_USER", "dummy")
+os.environ.setdefault("POSTGRES_PASSWORD", "dummy")
+os.environ.setdefault("POSTGRES_HOST", "dummy")
+os.environ.setdefault("POSTGRES_DATABASE", "dummy")
+os.environ.setdefault("OPENAI_API_KEY", "dummy")
+os.environ.setdefault("POSTGRES_URL", os.environ.get("DATABASE_URL", ""))
+
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from turf_backend.models.turf import PdfImport

@@ -6,7 +6,10 @@ from turf_backend.routes import general, palermo, san_isidro, users
 
 app = FastAPI(redoc_url="/swagger")
 
-origins = ["*"]
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 app.add_middleware(
     CORSMiddleware,
