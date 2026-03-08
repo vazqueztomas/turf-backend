@@ -5,10 +5,11 @@ import logging
 import tempfile
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from sqlmodel import Session, select
 
 from turf_backend.controllers.pdf_file import PdfFileController
+from turf_backend.controllers.temp_pdf_downloader import DailyPdfUpdater
 from turf_backend.database import get_connection
 from turf_backend.models.turf import AvailableLocations, PdfImport
 from turf_backend.services.palermo.palermo_processing import (
@@ -117,3 +118,45 @@ async def upload_pdf(
     session.commit()
 
     return {f"Insertadas: {total_inserted}"}
+
+
+@router.get("/available-pdfs")
+def get_available_pdfs():
+    """Return list of available PDF URLs from palermo.com.ar (for GitHub Actions proxy)."""
+    try:
+        updater = DailyPdfUpdater()
+        response_text = updater._make_request(updater.BASE_URL)
+        anchors = updater._parse_anchor_tags(response_text)
+        pdf_sources = [a["href"] for a in anchors if "programa-oficial-reunion" in a["href"]]
+
+        pdf_urls = []
+        for source in pdf_sources:
+            html = updater._make_request(source)
+            anchors = updater._parse_anchor_tags(html)
+            pdf_urls.extend(
+                {"url": a["href"], "filename": a["href"].split("/")[-1]}
+                for a in anchors
+                if a["href"].endswith(".pdf") and a.text.strip() == updater.PDF_DOWNLOAD_TEXT
+            )
+
+        return {"pdfs": pdf_urls}
+    except Exception as e:
+        logger.exception("Error fetching available PDFs")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/proxy-pdf")
+def proxy_pdf(url: str):
+    """Download a PDF from palermo.com.ar and return it (proxy for GitHub Actions)."""
+    try:
+        updater = DailyPdfUpdater()
+        content = updater._download_pdf(url)
+        filename = url.split("/")[-1]
+        return Response(
+            content=content,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except Exception as e:
+        logger.exception("Error proxying PDF")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -25,10 +25,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Sync upcoming PDFs
+      - name: Sync San Isidro upcoming PDFs
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         run: python scripts/import_san_isidro.py --tipo upcoming
+
+      - name: Sync Palermo PDFs
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: python scripts/import_palermo.py
 
       - name: Sync histórico manual (si se especificó rango)
         if: github.event.inputs.sync_historical != ''

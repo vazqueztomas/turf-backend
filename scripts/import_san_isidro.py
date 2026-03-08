@@ -62,15 +62,38 @@ def compute_hash(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def get_pdf_via_backend(calendario_id: str) -> tuple[bytes, str] | None:
+    """
+    Descarga el PDF del programa oficial a través del backend (Vercel),
+    evitando que GitHub Actions llame directamente a hipodromosanisidro.com.
+    Retorna (contenido, filename) o None si no hay PDF.
+    """
+    backend_url = os.environ.get("BACKEND_URL", "https://turf-backend-theta.vercel.app")
+
+    links_resp = requests.get(f"{backend_url}/san-isidro/pdf-links/{calendario_id}", timeout=30)
+    links_resp.raise_for_status()
+    links_data = links_resp.json()
+
+    pdf_url = links_data.get("programa_oficial")
+    if not pdf_url:
+        return None
+
+    pdf_resp = requests.get(f"{backend_url}/san-isidro/download-pdf/{calendario_id}", timeout=60)
+    pdf_resp.raise_for_status()
+
+    filename = pdf_url.split("/")[-1]
+    return pdf_resp.content, filename
+
+
 def import_day(engine, fecha: str, calendario_id: str) -> dict:
     """Cada día usa su propia sesión para que un fallo no contamine los siguientes."""
     try:
-        links = scraper.get_pdf_links(calendario_id)
-        if not links.programa_oficial:
+        result = get_pdf_via_backend(calendario_id)
+        if result is None:
             logger.info("Sin PDF: %s (%s)", fecha, calendario_id)
             return {"fecha": fecha, "status": "skipped", "reason": "no PDF"}
 
-        pdf_content = scraper.download_pdf(links.programa_oficial)
+        pdf_content, filename = result
         file_hash = compute_hash(pdf_content)
 
         with Session(engine) as session:
@@ -84,7 +107,6 @@ def import_day(engine, fecha: str, calendario_id: str) -> dict:
                 tmp_path = tmp.name
 
             horses = parse_pdf_horses(tmp_path)
-            filename = links.programa_oficial.split("/")[-1]
 
             if not horses:
                 session.add(PdfImport(file_hash=file_hash, filename=filename, hipodromo="san_isidro"))
