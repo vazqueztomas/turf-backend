@@ -60,7 +60,8 @@ def compute_hash(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
-def import_day(session: Session, fecha: str, calendario_id: str) -> dict:
+def import_day(engine, fecha: str, calendario_id: str) -> dict:
+    """Cada día usa su propia sesión para que un fallo no contamine los siguientes."""
     try:
         links = scraper.get_pdf_links(calendario_id)
         if not links.programa_oficial:
@@ -70,29 +71,30 @@ def import_day(session: Session, fecha: str, calendario_id: str) -> dict:
         pdf_content = scraper.download_pdf(links.programa_oficial)
         file_hash = compute_hash(pdf_content)
 
-        existing = session.exec(select(PdfImport).where(PdfImport.file_hash == file_hash)).first()
-        if existing:
-            logger.info("Ya importado: %s", fecha)
-            return {"fecha": fecha, "status": "skipped", "reason": "already imported"}
+        with Session(engine) as session:
+            existing = session.exec(select(PdfImport).where(PdfImport.file_hash == file_hash)).first()
+            if existing:
+                logger.info("Ya importado: %s", fecha)
+                return {"fecha": fecha, "status": "skipped", "reason": "already imported"}
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(pdf_content)
-            tmp_path = tmp.name
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(pdf_content)
+                tmp_path = tmp.name
 
-        horses = parse_pdf_horses(tmp_path)
-        filename = links.programa_oficial.split("/")[-1]
+            horses = parse_pdf_horses(tmp_path)
+            filename = links.programa_oficial.split("/")[-1]
 
-        if not horses:
+            if not horses:
+                session.add(PdfImport(file_hash=file_hash, filename=filename, hipodromo="san_isidro"))
+                session.commit()
+                logger.info("Importado sin caballos: %s", fecha)
+                return {"fecha": fecha, "status": "imported", "inserted": 0}
+
+            total = insert_and_create_races(session, horses, tmp_path)
             session.add(PdfImport(file_hash=file_hash, filename=filename, hipodromo="san_isidro"))
             session.commit()
-            logger.info("Importado sin caballos: %s", fecha)
-            return {"fecha": fecha, "status": "imported", "inserted": 0}
-
-        total = insert_and_create_races(session, horses, tmp_path)
-        session.add(PdfImport(file_hash=file_hash, filename=filename, hipodromo="san_isidro"))
-        session.commit()
-        logger.info("Importado: %s — %d caballos", fecha, total)
-        return {"fecha": fecha, "status": "imported", "inserted": total}
+            logger.info("Importado: %s — %d caballos", fecha, total)
+            return {"fecha": fecha, "status": "imported", "inserted": total}
 
     except Exception as e:
         logger.exception("Error procesando %s (%s)", fecha, calendario_id)
@@ -121,10 +123,9 @@ def main():
     logger.info("Días a procesar: %d", len(days))
 
     results = []
-    with Session(engine) as session:
-        for fecha, calendario_id in days:
-            result = import_day(session, fecha, calendario_id)
-            results.append(result)
+    for fecha, calendario_id in days:
+        result = import_day(engine, fecha, calendario_id)
+        results.append(result)
 
     imported = sum(1 for r in results if r["status"] == "imported")
     skipped = sum(1 for r in results if r["status"] == "skipped")
