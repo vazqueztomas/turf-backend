@@ -16,14 +16,22 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Setear vars requeridas por settings.py antes de importar turf_backend
-os.environ.setdefault("ENVIRONMENT", "DEVELOPMENT")
-os.environ.setdefault("POSTGRES_USER", "dummy")
-os.environ.setdefault("POSTGRES_PASSWORD", "dummy")
-os.environ.setdefault("POSTGRES_HOST", "dummy")
-os.environ.setdefault("POSTGRES_DATABASE", "dummy")
+# Parsear POSTGRES_URL y setear las vars individuales que requiere settings.py
+# Esto debe hacerse ANTES de importar cualquier módulo de turf_backend
+_db_url = os.environ.get("POSTGRES_URL") or os.environ.get("DATABASE_URL", "")
+if not _db_url:
+    print("ERROR: Falta la variable de entorno POSTGRES_URL o DATABASE_URL")
+    sys.exit(1)
+
+from urllib.parse import urlparse as _urlparse  # noqa: E402
+_parsed = _urlparse(_db_url)
+os.environ.setdefault("ENVIRONMENT", "PRODUCTION")
+os.environ.setdefault("POSTGRES_USER", _parsed.username or "")
+os.environ.setdefault("POSTGRES_PASSWORD", _parsed.password or "")
+os.environ.setdefault("POSTGRES_HOST", _parsed.hostname or "")
+os.environ.setdefault("POSTGRES_DATABASE", _parsed.path.lstrip("/"))
+os.environ.setdefault("POSTGRES_URL", _db_url)
 os.environ.setdefault("OPENAI_API_KEY", "dummy")
-os.environ.setdefault("POSTGRES_URL", os.environ.get("DATABASE_URL", ""))
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
