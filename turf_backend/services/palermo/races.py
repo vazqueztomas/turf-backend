@@ -59,18 +59,12 @@ def extract_race_block(lines, header_index, radius=4):
     return lines[start:end]
 
 
-def extract_race_information(
-    pdf_path: str, horses_group: list[Horse]
+def _extract_race_info_from_lines(
+    lines: list[str], line_index: int
 ) -> dict[str, Any] | None:
-    horse = horses_group[0]
-
-    with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[horse.page]  # type: ignore
-        lines = (page.extract_text() or "").split("\n")
-
-    # 1. Encontrar encabezado ("1ª Carrera", "2º Carrera", etc.)
+    """Extract race info from already-extracted page lines (no file I/O)."""
     header_idx = None
-    for idx in range(horse.line_index, -1, -1):  # type: ignore
+    for idx in range(line_index, -1, -1):
         if RACE_HEADER_RE.search(lines[idx]):
             header_idx = idx
             break
@@ -78,12 +72,9 @@ def extract_race_information(
     if header_idx is None:
         return None
 
-    # 2. Tomar bloque de líneas alrededor del encabezado
     block = extract_race_block(lines, header_idx, radius=4)
-
     nombre, hora, distancia = extract_name_distance_hour(block)
 
-    # Si no hay nombre, usar fallback
     if not nombre:
         header = RACE_HEADER_RE.search(lines[header_idx])
         numero = header.group("num")
@@ -95,6 +86,18 @@ def extract_race_information(
         "hora": hora,
         "hipodromo": "Palermo",
     }
+
+
+def extract_race_information(
+    pdf_path: str, horses_group: list[Horse]
+) -> dict[str, Any] | None:
+    horse = horses_group[0]
+
+    with pdfplumber.open(pdf_path) as pdf:
+        page = pdf.pages[horse.page]  # type: ignore
+        lines = (page.extract_text() or "").split("\n")
+
+    return _extract_race_info_from_lines(lines, horse.line_index)  # type: ignore
 
 
 def extract_name_distance_hour(block):
@@ -128,22 +131,45 @@ def insert_and_create_races(session, horses, pdf_path: str):
     for h in horses:
         races_dict[h.race_id].append(h)
 
-    total_inserted = 0
+    all_races: list[Race] = []
+    all_horses: list[Horse] = []
+    fecha_hoy = datetime.now().strftime("%d/%m/%Y")
 
-    for rid, horses_group in races_dict.items():
-        race_info = extract_race_information(pdf_path, horses_group)
-        race = create_race(
-            session,
-            hipodromo="Palermo",
-            fecha=datetime.now().strftime("%d/%m/%Y"),
-            numero=None,
-            nombre=race_info["nombre"],
-            distancia=race_info["distancia"],
-            hour=race_info["hora"],
-        )
+    # Cache de líneas por página para no re-parsear el mismo texto
+    page_lines_cache: dict[int, list[str]] = {}
 
-        race.race_id = rid
-        session.flush()
+    with pdfplumber.open(pdf_path) as pdf:
+        for rid, horses_group in races_dict.items():
+            horse = horses_group[0]
+            page_idx = horse.page  # type: ignore
 
-        total_inserted += assign_horses_to_race(session, rid, horses_group)
-    return total_inserted
+            if page_idx not in page_lines_cache:
+                page_lines_cache[page_idx] = (
+                    pdf.pages[page_idx].extract_text() or ""
+                ).split("\n")
+
+            lines = page_lines_cache[page_idx]
+            race_info = _extract_race_info_from_lines(lines, horse.line_index)  # type: ignore
+
+            if race_info is None:
+                race_info = {"nombre": "Carrera", "distancia": None, "hora": None}
+
+            all_races.append(Race(
+                race_id=rid,
+                hipodromo="Palermo",
+                fecha=fecha_hoy,
+                numero=None,
+                nombre=race_info["nombre"],
+                distancia=race_info["distancia"],
+                hour=race_info["hora"],
+            ))
+
+            for h in horses_group:
+                h.race_id = rid
+                all_horses.append(h)
+
+    session.add_all(all_races)
+    session.flush()
+    session.add_all(all_horses)
+    session.commit()
+    return len(all_horses)

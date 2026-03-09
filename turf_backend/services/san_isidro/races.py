@@ -43,6 +43,22 @@ def assign_horses_to_race(session: Session, race_id: UUID, horses: list[Horse]) 
     return inserted
 
 
+def _bulk_insert_races_and_horses(
+    session: Session,
+    races: list[Race],
+    all_horses: list[Horse],
+) -> int:
+    """
+    Inserta todas las carreras y caballos en un solo flush + commit.
+    Mucho más eficiente que hacer commit por cada carrera/grupo.
+    """
+    session.add_all(races)
+    session.flush()
+    session.add_all(all_horses)
+    session.commit()
+    return len(all_horses)
+
+
 def parse_race_header_from_page(lines: list[str]) -> dict[str, Any]:
     """
     Parse race metadata from a page's lines.
@@ -206,7 +222,9 @@ def insert_and_create_races(session: Session, horses: list[Horse], pdf_path: str
     for h in horses:
         races_dict[h.race_id].append(h)
 
-    total_inserted = 0
+    all_races: list[Race] = []
+    all_horses: list[Horse] = []
+    fecha_hoy = datetime.now().strftime("%d/%m/%Y")
 
     with pdfplumber.open(pdf_path) as pdf:
         for temporary_race_id, horses_group in races_dict.items():
@@ -225,19 +243,18 @@ def insert_and_create_races(session: Session, horses: list[Horse], pdf_path: str
                 except (ValueError, TypeError):
                     distancia_val = None
 
-            race = create_race(
-                session,
+            all_races.append(Race(
                 race_id=temporary_race_id,
                 hipodromo="San Isidro",
-                fecha=datetime.now().strftime("%d/%m/%Y"),
+                fecha=fecha_hoy,
                 hour=race_info["hora"],
                 nombre=race_info["nombre"],
                 distancia=distancia_val,
                 numero=race_info["numero"],
-            )
+            ))
 
-            total_inserted += assign_horses_to_race(
-                session, race.race_id, horses_group
-            )
+            for h in horses_group:
+                h.race_id = temporary_race_id
+                all_horses.append(h)
 
-    return total_inserted
+    return _bulk_insert_races_and_horses(session, all_races, all_horses)

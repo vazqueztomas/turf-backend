@@ -63,8 +63,9 @@ def get_all_races(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
+    total = session.exec(select(func.count()).select_from(Race)).one()
     races = session.exec(select(Race).offset(offset).limit(limit)).all()
-    return {"count": len(races), "results": races}
+    return {"count": total, "results": races}
 
 
 @router.get("/races/{race_id}")

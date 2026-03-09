@@ -3,12 +3,20 @@ from typing import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from turf_backend.core.config.settings import database_url
+from turf_backend.core.config.settings import database_url, settings
 
 
 class DatabaseConnection:
     def __init__(self, uri: str):
-        self.engine = create_engine(uri, echo=True)
+        is_dev = settings.environment == "DEVELOPMENT"
+        self.engine = create_engine(
+            uri,
+            echo=is_dev,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True,
+            pool_recycle=300,
+        )
         SQLModel.metadata.create_all(self.engine)
 
     @contextmanager

@@ -2,13 +2,14 @@
 import hashlib
 import logging
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlmodel import Session, select
 
-from turf_backend.database import get_connection
+from turf_backend.database import database, get_connection
 from turf_backend.models.turf import PdfImport
 from turf_backend.services.san_isidro.races import insert_and_create_races
 from turf_backend.services.san_isidro.sanisidro_processing import parse_pdf_horses
@@ -323,8 +324,14 @@ def _import_day(session: Session, fecha: str, calendario_id: str) -> dict:
         return {"fecha": fecha, "status": "error", "reason": str(e)}
 
 
+def _import_day_concurrent(fecha: str, calendario_id: str) -> dict:
+    """Versión de _import_day con sesión propia para uso en threads."""
+    with database.get_session() as session:
+        return _import_day(session, fecha, calendario_id)
+
+
 @router.post("/sync-all")
-def sync_all_upcoming(session: Session = Depends(get_connection)):
+def sync_all_upcoming():
     """Download and import PDFs for all upcoming orange days. Called by GitHub Actions cron."""
     try:
         orange_days = scraper.get_orange_days()
@@ -332,13 +339,18 @@ def sync_all_upcoming(session: Session = Depends(get_connection)):
         logger.exception("Error fetching orange days")
         raise HTTPException(status_code=500, detail=f"Error fetching calendar: {e}")
 
-    results = [_import_day(session, fecha, cid) for fecha, cid in orange_days]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {
+            executor.submit(_import_day_concurrent, fecha, cid): fecha
+            for fecha, cid in orange_days
+        }
+        results = [f.result() for f in as_completed(futures)]
+
     return {"results": results}
 
 
 @router.post("/sync-historical")
 def sync_historical(
-    session: Session = Depends(get_connection),
     start: date = Query(..., description="Fecha inicio (YYYY-MM-DD)"),
     end: date = Query(..., description="Fecha fin (YYYY-MM-DD)"),
 ):
@@ -352,5 +364,11 @@ def sync_historical(
     if not resultados_days:
         return {"results": [], "message": "No se encontraron días de resultados en ese rango"}
 
-    results = [_import_day(session, fecha, cid) for fecha, cid in resultados_days]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {
+            executor.submit(_import_day_concurrent, fecha, cid): fecha
+            for fecha, cid in resultados_days
+        }
+        results = [f.result() for f in as_completed(futures)]
+
     return {"results": results}
