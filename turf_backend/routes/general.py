@@ -83,5 +83,6 @@ def reset_database(session: Session = Depends(get_connection)):
     """⚠️ SOLO para desarrollo: elimina todas las tablas de turf."""
     session.exec(text("DELETE FROM horses;"))  # type: ignore
     session.exec(text("DELETE FROM races;"))  # type: ignore
+    session.exec(text("DELETE FROM pdf_imports;"))  # type: ignore
     session.commit()
     return {"message": "💣 Base de datos reseteada correctamente."}
