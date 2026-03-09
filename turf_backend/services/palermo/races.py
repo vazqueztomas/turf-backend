@@ -64,7 +64,7 @@ def _extract_race_info_from_lines(
 ) -> dict[str, Any] | None:
     """Extract race info from already-extracted page lines (no file I/O)."""
     header_idx = None
-    for idx in range(line_index, -1, -1):
+    for idx in range(min(line_index, len(lines) - 1), -1, -1):
         if RACE_HEADER_RE.search(lines[idx]):
             header_idx = idx
             break
