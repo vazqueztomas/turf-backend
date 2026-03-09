@@ -30,7 +30,6 @@ class Horse(SQLModel, table=True):
     line_index: int | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.now)
     caballeriza: str | None = Field(default=None)
-    races: list["Race"] = Relationship(back_populates="horses")
     race: Optional["Race"] = Relationship(back_populates="horses")
 
 
