@@ -1,131 +1,227 @@
 import re
 
-RACE_HEADER_RE = re.compile(r"(?P<num>\d{1,2})\s*(?:ª|º)?\s*Carrera\b", re.IGNORECASE)
+# Matches the race header line, e.g.:
+#   "1ª - Premio CORSA KIND 2011 - 13:45 hs."
+#   "3ª - Clásico GRAN CRITERIUM (G1) - 15:00 hs."
+RACE_HEADER_RE = re.compile(
+    r"^(\d+)[ªº°]\s*-\s*(Premio|Cl[aá]sico|Gran\s+Premio|G\.?\s*P\.?)\s+(.+?)\s*-\s*(\d{1,2}:\d{2})\s*hs",
+    re.IGNORECASE,
+)
 
 DISTANCE_RE = re.compile(
     r"\b(\d{3,4})\s*(?:m|mts|metros)\.?\b",
     re.IGNORECASE,
 )
+
 HOUR_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(?:hs\.?|Hs\.?)?", re.IGNORECASE)
-PREMIO_RE = re.compile(r"Premio[:\s]+[\"“”']?([^\"“”']+)", re.IGNORECASE)
-MAIN_LINE_RE = re.compile(
-    r"(?P<ultimas>(?:\d+[A-Z0-9]{0,2}(?:[-\s])){1,6}|DEBUTA\s+)"
-    r"(?P<num>\d{1,2})\s+"
-    r"(?P<name>[A-Za-zÁÉÍÓÚÑ0-9\'\.\s\-]+?)\s+"
-    r"(?P<peso>\d{1,3}(?:\.\d+)?)",
+
+PISTA_RE = re.compile(r"Pista\s+([A-Za-záéíóúÁÉÍÓÚÑñ\s]+)", re.IGNORECASE)
+
+# Horse line must start with a 2-digit number, then uppercase name, then [HM], then peso anchor.
+# We use this as a quick gate before full parsing.
+HORSE_LINE_RE = re.compile(
+    r"^\d{2}\s+[A-ZÁÉÍÓÚÑ0-9][A-ZÁÉÍÓÚÑ0-9\s'\(\)\-\.]+[HM]\s.*\d{2,3}\.\d{2}",
     re.UNICODE,
 )
-RACE_NUMBER_LINE_RE = re.compile(r"^\s*(\d{1,2})(?:\s+(.*\S))?\s*$")
 
-PREMIO_LINE_RE = re.compile(r"(?i)^(premio|cl[aá]sico|gran premio|g\.?\s*p\.?)\b")
-PREMIO_EXTRACT_RE = re.compile(
-    r"(?i)^(?:premio|cl[aá]sico|gran premio|g\.?\s*p\.?)[:\s\-]*(.+)$"
-)
+# Pelo codes accepted
+PELO_CODES = {
+    "Z", "A", "T", "B", "R", "O", "P",
+    "ZC", "ZD", "ZO", "AT", "ZA", "ZT", "TC", "AC", "RO", "TO",
+}
 
+# Race result letter codes used in ultimas (single letter only).
+# S=placed, A=placed, L=Liquidado, V=Vendido, G=Ganó, N=No corrió, D=Distancia
+_ULTIMA_LETTERS = "SALVGND"
 
-def strip_unused_tokens_between_jockey_and_parents(text: str) -> str:
-    tokens = text.split()
-    clean = []
-    for tk in tokens:
-        if re.match(r"^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑ\-]+$", tk):
-            clean.append(tk)
-        else:
-            break
-    return " ".join(clean)
+# A single ultimas token: one or more \d+[letter] units, e.g. "0S", "3A", "0S3S4S"
+ULTIMA_SEQ_TOKEN_RE = re.compile(rf"^(?:\d+[{_ULTIMA_LETTERS}])+$")
 
-
-def extract_header_idx(lines: list[str]) -> list[int]:
-    headers = [
-        i
-        for i, ln in enumerate(lines)
-        if re.search(r"Caballeriza.*5\s+Ultimas", ln, re.IGNORECASE)
-    ]
-    if not headers:
-        headers = [
-            i for i, ln in enumerate(lines) if "Caballeriza" in ln and "Ultimas" in ln
-        ]
-    return headers
-
-
-def check_is_valid_race_header(lines: list[str], idx: int, joined: str) -> bool:
-    window_text = joined
-    max_ahead = 3
-    for j in range(1, max_ahead + 1):
-        if idx + j < len(lines):
-            window_text += " " + lines[idx + j]
-
-    if (
-        DISTANCE_RE.search(window_text)
-        or HOUR_RE.search(window_text)
-        or PREMIO_RE.search(window_text)
-    ):
-        return True
-
-    any(idx + j < len(lines) and "Caballeriza" in lines[idx + j] for j in range(6))
-
-    return False
+# Unit finder used internally by split_ultimas_cuida
+_ULTIMA_UNIT_RE = re.compile(rf"\d+[{_ULTIMA_LETTERS}]")
 
 
 def clean_text(x: str) -> str:
     return re.sub(r"\s{2,}", " ", x).strip()
 
 
-def extract_jockey_trainer_and_parents(rest: str) -> tuple[str, str, str]:
-    tokens = rest.split()
+def parse_weight(peso_str: str) -> float | int | None:
+    try:
+        w = float(peso_str)
+        return int(w) if w.is_integer() else w
+    except (ValueError, TypeError):
+        return None
 
-    sire_idx = None
-    for i, tok in enumerate(tokens):
-        if re.search(r"\((usa|arg|brz|chi|ury|mex|can)\)", tok.lower()):
-            sire_idx = i
+
+def split_ultimas_cuida(token: str) -> tuple[str, str]:
+    """
+    Split a token that may be concatenated ultimas+cuida, e.g. '2S1A1A1AHIPSI'.
+
+    Strategy: find all ultima-unit end positions right-to-left; take the first
+    split where the remaining cuida is >= 3 chars and starts with a letter.
+    Returns (ultimas_part, cuida_part) or ('', token) if no valid split found.
+    """
+    if not token:
+        return "", token
+
+    # If the whole token is a pure ultimas sequence, there is no cuida.
+    if ULTIMA_SEQ_TOKEN_RE.match(token):
+        return "", token
+
+    matches = list(_ULTIMA_UNIT_RE.finditer(token))
+    if not matches:
+        return "", token
+
+    for i in range(len(matches) - 1, -1, -1):
+        split_pos = matches[i].end()
+        ul_candidate = token[:split_pos]
+        cu_candidate = token[split_pos:]
+
+        if len(cu_candidate) >= 3 and cu_candidate[0].isupper():
+            if ULTIMA_SEQ_TOKEN_RE.match(ul_candidate):
+                return ul_candidate, cu_candidate
+
+    return "", token
+
+
+def parse_pre_peso(pre_peso: str) -> tuple[str, str]:
+    """
+    Parse the portion before the peso on a horse line (after stripping numero and nombre+sexo).
+    Format: [herraje_digit] [FF] STUD [(CODE)] JOCKEY...
+
+    Returns (stud, jockey).
+    """
+    s = pre_peso.strip()
+
+    # Strip leading single digit (herraje), e.g. "0 " or "0"
+    s = re.sub(r"^\d\s*", "", s)
+
+    # Strip leading "FF " handicap marker
+    s = re.sub(r"^FF\s+", "", s)
+
+    s = s.strip()
+    if not s:
+        return "", ""
+
+    # If there's a parenthesized location code, e.g. "(CDU)" or "(LP)" or "(GGCHU)"
+    # Everything up to and including the code is stud; rest is jockey.
+    m = re.search(r"\([A-Z0-9]+\)", s)
+    if m:
+        stud = s[: m.end()].strip()
+        jockey = s[m.end() :].strip()
+        return stud, jockey
+
+    # No parenthesized code: first token = stud, rest = jockey
+    parts = s.split(None, 1)
+    stud = parts[0] if parts else ""
+    jockey = parts[1] if len(parts) > 1 else ""
+    return stud, jockey
+
+
+def parse_post_peso(post_peso: str) -> tuple[str, str, str, str, str, str]:
+    """
+    Parse the portion after the peso value on a horse line.
+    Format: ENTRENADOR[PELO] EDAD PADRE-MADRE [ULTIMAS] [CUIDA]
+
+    The parsing strategy works right-to-left:
+      1. Last token: strip cuida (or split concatenated ultimas+cuida).
+      2. Collect trailing ultimas sequence token(s).
+      3. Find edad (leftmost single digit scanning from right).
+      4. Tokens after edad = padre_madre; tokens before = entrenador + optional pelo.
+
+    Returns (entrenador, pelo, edad, padre_madre, ultimas, cuida).
+    """
+    tokens = post_peso.split()
+    if not tokens:
+        return "", "", "", "", "", ""
+
+    cuida = ""
+    ultimas = ""
+    edad = ""
+    entrenador = ""
+    pelo = ""
+    padre_madre = ""
+
+    # --- Step 1: Handle the last token ---
+    # Could be: plain cuida, concatenated ultimas+cuida, or bare ultimas sequence (no cuida).
+    last = tokens[-1]
+    ul_part, cu_part = split_ultimas_cuida(last)
+    if ul_part:
+        # e.g. "2S1A1A1AHIPSI" -> ul_part="2S1A1A1A", cu_part="HIPSI"
+        cuida = cu_part
+        tokens = tokens[:-1]
+        # Insert the separated ultimas sequence back for step 2 to collect
+        tokens.append(ul_part)
+    elif ULTIMA_SEQ_TOKEN_RE.match(last):
+        # Bare ultimas sequence (no cuida), e.g. "0S3S4S" or "5S"
+        cuida = ""
+        # Leave in tokens list so step 2 picks it up
+    else:
+        # Plain cuida token, e.g. "HIPSI", "CDU", "L.P."
+        cuida = last
+        tokens = tokens[:-1]
+
+    # --- Step 2: Collect trailing ultimas sequence token(s) ---
+    # Ultimas can be a single concatenated token like "0S3S4S" or multiple
+    # separate single-run tokens like "0S" "3S" "4S" (rare but handle it).
+    ultimas_tokens = []
+    while tokens and ULTIMA_SEQ_TOKEN_RE.match(tokens[-1]):
+        ultimas_tokens.insert(0, tokens[-1])
+        tokens = tokens[:-1]
+    ultimas = "".join(ultimas_tokens)
+
+    # --- Step 3: Find edad (single digit) scanning from right ---
+    # edad is the LAST standalone single-digit token that comes before padre_madre.
+    # padre_madre tokens contain hyphens (e.g. "FRAGOTERO-COMANDULERA") so we
+    # skip hyphenated tokens when looking for edad.
+    edad_idx = None
+    for i in range(len(tokens) - 1, -1, -1):
+        if re.match(r"^\d$", tokens[i]):
+            edad_idx = i
             break
 
-    if sire_idx is None:
-        return "", "", ""
+    if edad_idx is None:
+        # No edad found — return what we have
+        entrenador = " ".join(tokens)
+        return entrenador, pelo, edad, padre_madre, ultimas, cuida
 
-    sire = tokens[sire_idx]
-    mother = " ".join(tokens[sire_idx + 1 :]).strip()
+    edad = tokens[edad_idx]
 
-    jockey_tokens, jockey = detect_jockey(tokens)
+    # --- Step 4: padre_madre = tokens after edad ---
+    padre_madre = " ".join(tokens[edad_idx + 1:])
 
-    # 3) ENTRENADOR = tokens entre jockey y sire
-    if jockey_tokens:
-        j_end = len(jockey_tokens)
-        entrenador_tokens = tokens[j_end:sire_idx]
+    # --- Step 5: tokens before edad = entrenador (with possible trailing pelo) ---
+    pre_edad_tokens = tokens[:edad_idx]
+
+    if not pre_edad_tokens:
+        return entrenador, pelo, edad, padre_madre, ultimas, cuida
+
+    last_pre = pre_edad_tokens[-1]
+
+    # Check if the last pre-edad token is a standalone pelo code
+    if last_pre in PELO_CODES:
+        pelo = last_pre
+        entrenador = " ".join(pre_edad_tokens[:-1])
     else:
-        entrenador_tokens = tokens[:sire_idx]
+        # Check if it ends with a pelo code (concatenated), e.g.:
+        #   "ADRIANZC" -> root="ADRIAN", pelo="ZC"
+        #   "DANIELA"  -> root="DANIEL", pelo="A"
+        #   "GASTONA"  -> root="GASTON", pelo="A"
+        matched_pelo = ""
+        for code in sorted(PELO_CODES, key=len, reverse=True):  # longest first
+            if last_pre.endswith(code) and len(last_pre) > len(code):
+                candidate_root = last_pre[: -len(code)]
+                # Root must look like part of a name (≥2 chars, all alpha)
+                if len(candidate_root) >= 2 and re.match(r"^[A-ZÁÉÍÓÚÑ]+$", candidate_root, re.IGNORECASE):
+                    matched_pelo = code
+                    last_pre = candidate_root
+                    break
 
-    entrenador = " ".join(entrenador_tokens).strip()
-
-    padre_madre = f"{sire} - {mother}"
-
-    return jockey, padre_madre, entrenador
-
-
-def detect_jockey(tokens):
-    jockey_tokens = []
-    for tok in tokens:
-        if re.match(r"^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$", tok):  # token tipo "Flores"
-            jockey_tokens.append(tok)
-            # normalmente son nombre + apellido
-            if len(jockey_tokens) == 2:
-                break
+        if matched_pelo:
+            pelo = matched_pelo
+            entrenador = " ".join(pre_edad_tokens[:-1] + [last_pre])
         else:
-            if jockey_tokens:
-                break
+            pelo = ""
+            entrenador = " ".join(pre_edad_tokens)
 
-    jockey = " ".join(jockey_tokens)
-    return jockey_tokens, jockey
-
-
-def extract_races_number_name_and_weight(main_line):
-    raw_ultimas = main_line.group("ultimas")
-    ultimas = "DEBUTA" if "DEBUTA" in raw_ultimas else clean_text(raw_ultimas)
-    numero = int(main_line.group("num").strip())
-    nombre = clean_text(main_line.group("name"))
-    peso = main_line.group("peso").strip()
-    return ultimas, numero, nombre, peso
-
-
-def parse_weight(peso_str: str) -> float | int | None:
-    w = float(peso_str)
-    return int(w) if w.is_integer() else w
+    return entrenador, pelo, edad, padre_madre, ultimas, cuida
